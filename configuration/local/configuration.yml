@@ -1,0 +1,16 @@
+# name and ip:port should be unique
+# to add more peers or clients: add new lines following the same structure
+peers:
+  - name: 1
+    address: 0.0.0.0:10000
+  - name: 2
+    address: 0.0.0.0:10001
+  - name: 3
+    address: 0.0.0.0:10002
+clients:
+  - name: 11
+    address: 0.0.0.0:11000
+  - name: 12
+    address: 0.0.0.0:11001
+  - name: 13
+    address: 0.0.0.0:11002
