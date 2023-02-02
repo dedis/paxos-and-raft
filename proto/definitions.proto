@@ -1,0 +1,66 @@
+syntax = "proto3";
+option go_package = "proto/";
+
+/*
+  Client batch refers to a client request batch, or a client response batch
+  Client request batch is sent by a client once it has collected a batch of client requests
+  Client response batch is sent by a replica node
+*/
+
+message SingleOperation {
+  string command = 1;
+}
+
+message ClientBatch {
+  string unique_id = 1;
+  repeated SingleOperation requests = 2;
+  int64 sender = 3;
+}
+
+/*
+  replica batch refers to a single value proposed in a consensus message
+*/
+
+message ReplicaBatch {
+  string unique_id = 1;
+  repeated ClientBatch requests = 2;
+  int64 sender = 3;
+}
+
+/*
+  Status is sent by a client to inform replicas about actions that include, but not limited to
+  1. To establish connections to other nodes
+  2. To write the logs to files
+  3. Bootstrap consensus
+*/
+
+message Status {
+  int32 type = 1; // 1 for bootstrap, 2 for log print, 3 consensus start
+  string note = 2;
+  int64 sender = 3;
+}
+
+/*
+  PaxosConsensus defines the single consensus proto message type used for Paxos
+*/
+
+message PaxosConsensus {
+  int32 sender = 1;
+  int32 receiver = 2;
+
+  int32 type = 3; // 1-prepare, 2-promise, 3-propose, 4-accept, 5 internal timeout
+  string note = 4;
+
+  int32 instance_number = 5; // initial id for prepare messages, instance id for propose message
+  int32 ballot = 6;
+  int32 view = 7;
+
+  message instance{
+    int32 number = 1;
+    int32 ballot = 2;
+    repeated ReplicaBatch value = 3;
+  }
+  repeated instance promiseReply = 8;
+  repeated ReplicaBatch propose_value = 9;
+  repeated instance decided_values = 10; // decided value for last instances
+}
