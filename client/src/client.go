@@ -42,7 +42,6 @@ type Client struct {
 	debugOn    bool // if turned on, the debug messages will be printed on the console
 	debugLevel int  // current debug level
 
-	requestSize        int // size of the request payload in bytes
 	testDuration       int // test duration in seconds
 	arrivalRate        int // poisson rate of the arrivals (requests per second)
 	leaderTimeout      int // leader timeout
@@ -81,7 +80,7 @@ const arrivalBufferSize = 1000000     // size of the buffer that collects new re
 	Instantiate a new Client instance, allocate the buffers
 */
 
-func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clientBatchSize int, clientBatchTime int, defaultReplica int32, requestSize int, testDuration int, arrivalRate int, requestType string, operationType int, debugOn bool, debugLevel int, keyLen int, valLen int, leaderTimeout int) *Client {
+func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clientBatchSize int, clientBatchTime int, defaultReplica int32, testDuration int, arrivalRate int, requestType string, operationType int, debugOn bool, debugLevel int, keyLen int, valLen int, leaderTimeout int) *Client {
 	cl := Client{
 		clientName:                  name,
 		numReplicas:                 len(cfg.Peers),
@@ -102,7 +101,6 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 		debugOn:    debugOn,
 		debugLevel: debugLevel,
 
-		requestSize:   requestSize,
 		testDuration:  testDuration,
 		arrivalRate:   arrivalRate,
 		leaderTimeout: leaderTimeout,
