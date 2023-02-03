@@ -108,7 +108,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		state:               benchmark.Init(benchmarkMode, name, keyLen, valLen),
 	}
 
-	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers))
+	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers), name)
 
 	rp.debug("Created a new replica instance", 0)
 
