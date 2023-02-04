@@ -58,9 +58,9 @@ message PaxosConsensus {
   message instance{
     int32 number = 1;
     int32 ballot = 2;
-    repeated ReplicaBatch value = 3;
+    ReplicaBatch value = 3;
   }
   repeated instance promiseReply = 8;
-  repeated ReplicaBatch propose_value = 9;
+  ReplicaBatch propose_value = 9;
   repeated instance decided_values = 10; // decided value for last instances
 }

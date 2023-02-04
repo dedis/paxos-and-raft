@@ -113,7 +113,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		pipelineLength:      pipelineLength,
 	}
 
-	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers), name, &rp)
+	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers), name, &rp, pipelineLength)
 
 	rp.debug("Created a new replica instance", 0)
 

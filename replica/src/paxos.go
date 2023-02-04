@@ -18,14 +18,15 @@ type Instance struct {
 	promisedBallot int32
 	acceptedBallot int32
 
-	acceptedValues []*proto.ClientBatch
-	decided        bool
-	decisions      []*proto.ClientBatch
+	acceptedValue *proto.ReplicaBatch
+	proposedValue *proto.ReplicaBatch
+	decided       bool
+	decisions     *proto.ReplicaBatch
 
 	proposeResponses int
 
 	highestSeenAcceptedBallot int32
-	highestSeenAcceptedValue  []*proto.ClientBatch
+	highestSeenAcceptedValue  *proto.ReplicaBatch
 }
 
 /*
@@ -37,25 +38,28 @@ type Paxos struct {
 	view          int32 // current view number
 	currentLeader int32 // current leader
 
-	lastPromisedBallot    int32      // last promised ballot number, for each next instance created this should be used as the promised ballot
-	lastPreparedBallot    int32      // last prepared ballot as the proposer, all future instances should propose for this ballot number
-	lastDecidedLogIndex   int32      // the last log position that is decided
+	lastPromisedBallot    int32 // last promised ballot number, for each next instance created this should be used as the promised ballot
+	lastPreparedBallot    int32 // last prepared ballot as the proposer, all future instances should propose for this ballot number
+	lastProposedLogIndex  int32
 	lastCommittedLogIndex int32      // the last log position that is committed
 	replicatedLog         []Instance // the replicated log of commands
 	viewTimer             *common.TimerWithCancel
 	startTime             time.Time                         // time when the consensus was started
 	lastCommittedTime     time.Time                         // time when the last consensus instance was committed
+	lastProposedTime      time.Time                         // time when last proposed
 	nextFreeInstance      int                               // log position that needs to be created next in the replicated log
 	state                 string                            // can be A (acceptor), L (leader), C (contestant)
 	promiseResponses      map[int32][]*proto.PaxosConsensus // for each view the set of received promise messages
 	replica               *Replica
+	pipeLineLength        int
+	decidedIndexes        []int // indexes of already decided slots to be sent to other replicas
 }
 
 /*
 	init Paxos Consensus data structs
 */
 
-func InitPaxosConsensus(numReplicas int, name int32, replica *Replica) *Paxos {
+func InitPaxosConsensus(numReplicas int, name int32, replica *Replica, pipelineLength int) *Paxos {
 
 	replicatedLog := make([]Instance, 0)
 	// create the genesis slot
@@ -64,7 +68,7 @@ func InitPaxosConsensus(numReplicas int, name int32, replica *Replica) *Paxos {
 		proposedBallot:            -1,
 		promisedBallot:            -1,
 		acceptedBallot:            -1,
-		acceptedValues:            nil,
+		acceptedValue:             nil,
 		decided:                   true,
 		decisions:                 nil,
 		proposeResponses:          0,
@@ -78,7 +82,7 @@ func InitPaxosConsensus(numReplicas int, name int32, replica *Replica) *Paxos {
 			proposedBallot:            -1,
 			promisedBallot:            -1,
 			acceptedBallot:            -1,
-			acceptedValues:            nil,
+			acceptedValue:             nil,
 			decided:                   false,
 			decisions:                 nil,
 			proposeResponses:          0,
@@ -93,16 +97,19 @@ func InitPaxosConsensus(numReplicas int, name int32, replica *Replica) *Paxos {
 		currentLeader:         -1,
 		lastPromisedBallot:    -1,
 		lastPreparedBallot:    -1,
-		lastDecidedLogIndex:   0, // the log positions start with index 1
+		lastProposedLogIndex:  0,
 		lastCommittedLogIndex: 0,
 		replicatedLog:         replicatedLog,
 		viewTimer:             nil,
 		startTime:             time.Time{},
 		lastCommittedTime:     time.Time{},
+		lastProposedTime:      time.Time{},
 		nextFreeInstance:      100,
 		state:                 "A",
 		promiseResponses:      make(map[int32][]*proto.PaxosConsensus),
 		replica:               replica,
+		pipeLineLength:        pipelineLength,
+		decidedIndexes:        make([]int, 0),
 	}
 }
 
@@ -111,7 +118,8 @@ func InitPaxosConsensus(numReplicas int, name int32, replica *Replica) *Paxos {
 func (p Paxos) run() {
 	p.startTime = time.Now()
 	p.lastCommittedTime = time.Now()
-	initLeader := int32(1)
+	p.lastProposedTime = time.Now()
+	initLeader := int32(2)
 
 	if p.name == initLeader {
 		p.replica.sendPrepare()
@@ -131,7 +139,7 @@ func (rp *Replica) createNInstances(number int) {
 			proposedBallot:            -1,
 			promisedBallot:            rp.paxosConsensus.lastPromisedBallot,
 			acceptedBallot:            -1,
-			acceptedValues:            nil,
+			acceptedValue:             nil,
 			decided:                   false,
 			decisions:                 nil,
 			proposeResponses:          0,
@@ -197,7 +205,7 @@ func (rp *Replica) handlePaxosConsensus(message *proto.PaxosConsensus) {
 	Sets a timer, which once timeout will send an internal notification for a prepare message after another random wait to break the ties
 */
 
-func (rp *Replica) setPaxosViewTimer(view int32, lastDecidedIndex int32) {
+func (rp *Replica) setPaxosViewTimer(view int32) {
 
 	rp.paxosConsensus.viewTimer = common.NewTimerWithCancel(time.Duration(rp.viewTimeout) * time.Microsecond)
 
@@ -237,9 +245,9 @@ func (rp *Replica) printPaxosLogConsensus() {
 		if rp.paxosConsensus.replicatedLog[i].decided == false {
 			panic("should not happen")
 		}
-		for j := 0; j < len(rp.paxosConsensus.replicatedLog[i].decisions); j++ {
-			for k := 0; k < len(rp.paxosConsensus.replicatedLog[i].decisions[j].Requests); k++ {
-				_, _ = f.WriteString(strconv.Itoa(int(i)) + "-" + strconv.Itoa(int(j)) + "-" + strconv.Itoa(int(k)) + "-" + ":" + rp.paxosConsensus.replicatedLog[i].decisions[j].Requests[k].Command + "\n")
+		for j := 0; j < len(rp.paxosConsensus.replicatedLog[i].decisions.Requests); j++ {
+			for k := 0; k < len(rp.paxosConsensus.replicatedLog[i].decisions.Requests[j].Requests); k++ {
+				_, _ = f.WriteString(strconv.Itoa(int(i)) + "-" + strconv.Itoa(int(j)) + "-" + strconv.Itoa(int(k)) + "-" + ":" + rp.paxosConsensus.replicatedLog[i].decisions.Requests[j].Requests[k].Command + "\n")
 
 			}
 		}
