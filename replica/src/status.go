@@ -39,7 +39,7 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 		if rp.consensusStarted == false {
 			rp.consensusStarted = true
 			if rp.consAlgo == "paxos" {
-				rp.paxosConsensus.init()
+				rp.paxosConsensus.run()
 			}
 		}
 	}

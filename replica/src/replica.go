@@ -60,6 +60,9 @@ type Replica struct {
 
 	benchmarkMode int                  // 0 for resident K/V store, 1 for redis
 	state         *benchmark.Benchmark // k/v store
+
+	incomingRequests []*proto.ClientBatch
+	pipelineLength   int
 }
 
 const numOutgoingThreads = 100       // number of wire writers: since the I/O writing is expensive we delegate that task to a thread pool and separate from the critical path
@@ -70,7 +73,7 @@ const outgoingBufferSize = 100000000 // size of the buffer that collects message
 	instantiate a new replica instance, allocate the buffers
 */
 
-func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, viewTimeout int, consAlgo string, benchmarkMode int, keyLen int, valLen int) *Replica {
+func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, viewTimeout int, consAlgo string, benchmarkMode int, keyLen int, valLen int, pipelineLength int) *Replica {
 	rp := Replica{
 		name:          name,
 		listenAddress: common.GetAddress(cfg.Peers, name),
@@ -106,9 +109,11 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		consAlgo:            consAlgo,
 		benchmarkMode:       benchmarkMode,
 		state:               benchmark.Init(benchmarkMode, name, keyLen, valLen),
+		incomingRequests:    make([]*proto.ClientBatch, 0),
+		pipelineLength:      pipelineLength,
 	}
 
-	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers), name)
+	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers), name, &rp)
 
 	rp.debug("Created a new replica instance", 0)
 
