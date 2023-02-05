@@ -172,6 +172,6 @@ func (rp *Replica) getNodeType(id int32) string {
 
 func (rp *Replica) debug(s string, i int) {
 	if rp.debugOn && i >= rp.debugLevel {
-		fmt.Print(s)
+		fmt.Print(s + "\n")
 	}
 }

@@ -115,7 +115,7 @@ func InitPaxosConsensus(numReplicas int, name int32, replica *Replica, pipelineL
 
 // start the initial leader
 
-func (p Paxos) run() {
+func (p *Paxos) run() {
 	p.startTime = time.Now()
 	p.lastCommittedTime = time.Now()
 	p.lastProposedTime = time.Now()
@@ -172,31 +172,31 @@ func (rp *Replica) handlePaxosConsensus(message *proto.PaxosConsensus) {
 
 	if message.Type == 1 {
 		rp.debug("Received a prepare message from "+strconv.Itoa(int(message.Sender))+
-			" for view "+strconv.Itoa(int(message.View))+" for prepare ballot "+strconv.Itoa(int(message.Ballot))+" for initial instance "+strconv.Itoa(int(message.InstanceNumber))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime)), 0)
+			" for view "+strconv.Itoa(int(message.View))+" for prepare ballot "+strconv.Itoa(int(message.Ballot))+" for initial instance "+strconv.Itoa(int(message.InstanceNumber))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
 		rp.handlePrepare(message)
 	}
 
 	if message.Type == 2 {
 		rp.debug("Received a promise message from "+strconv.Itoa(int(message.Sender))+
-			" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" for promise ballot "+strconv.Itoa(int(message.Ballot))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime)), 0)
+			" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" for promise ballot "+strconv.Itoa(int(message.Ballot))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
 		rp.handlePromise(message)
 	}
 
 	if message.Type == 3 {
 		rp.debug("Received a propose message from "+strconv.Itoa(int(message.Sender))+
-			" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" for propose ballot "+strconv.Itoa(int(message.Ballot))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime)), 0)
+			" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" for propose ballot "+strconv.Itoa(int(message.Ballot))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
 		rp.handlePropose(message)
 	}
 
 	if message.Type == 4 {
 		rp.debug("Received a accept message from "+strconv.Itoa(int(message.Sender))+
-			" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" for accept ballot "+strconv.Itoa(int(message.Ballot))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime)), 0)
+			" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" for accept ballot "+strconv.Itoa(int(message.Ballot))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
 		rp.handleAccept(message)
 	}
 
 	if message.Type == 5 {
 		rp.debug("Received an internal timeout message from "+strconv.Itoa(int(message.Sender))+
-			" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime)), 0)
+			" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
 		rp.handlePaxosInternalTimeout(message)
 	}
 }
@@ -224,7 +224,7 @@ func (rp *Replica) setPaxosViewTimer(view int32) {
 			Obj:  &internalTimeoutNotification,
 		}
 		rp.sendMessage(rp.name, rpcPair)
-		rp.debug("Sent an internal timeout notification for view "+strconv.Itoa(int(rp.paxosConsensus.view))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime)), 0)
+		rp.debug("Sent an internal timeout notification for view "+strconv.Itoa(int(rp.paxosConsensus.view))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
 
 	})
 	rp.paxosConsensus.viewTimer.Start()

@@ -16,9 +16,9 @@ pkill client; pkill client; pkill client
 
 echo "Killed previously running instances"
 
-nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize 1 --batchTime 10    --debugOn --debugLevel 0 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}1.log &
-nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize 1 --batchTime 10    --debugOn --debugLevel 0 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}2.log &
-nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize 1 --batchTime 10    --debugOn --debugLevel 0 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}3.log &
+nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize 1 --batchTime 10    --debugOn --debugLevel 5 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}1.log &
+nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize 1 --batchTime 10    --debugOn --debugLevel 5 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}2.log &
+nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize 1 --batchTime 10    --debugOn --debugLevel 5 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}3.log &
 
 echo "Started 3 replicas"
 
@@ -41,9 +41,9 @@ echo "sent consensus start up status"
 
 echo "starting clients"
 
-nohup ./${ctl_path} --name 11 --requestType request --defaultReplica 2  --debugOn --debugLevel 0 --batchSize 1 --batchTime 10 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}11.log &
-nohup ./${ctl_path} --name 12 --requestType request --defaultReplica 2  --debugOn --debugLevel 0 --batchSize 1 --batchTime 10 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}12.log &
-nohup ./${ctl_path} --name 13 --requestType request --defaultReplica 2  --debugOn --debugLevel 0 --batchSize 1 --batchTime 10 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}13.log &
+nohup ./${ctl_path} --name 11 --requestType request --defaultReplica 2  --debugOn --debugLevel 5 --batchSize 1 --batchTime 10 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}11.log &
+nohup ./${ctl_path} --name 12 --requestType request --defaultReplica 2  --debugOn --debugLevel 5 --batchSize 1 --batchTime 10 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}12.log &
+nohup ./${ctl_path} --name 13 --requestType request --defaultReplica 2  --debugOn --debugLevel 5 --batchSize 1 --batchTime 10 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}13.log &
 
 sleep 180
 

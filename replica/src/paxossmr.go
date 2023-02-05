@@ -21,7 +21,7 @@ func (rp *Replica) updatePaxosSMR() {
 			if rp.paxosConsensus.replicatedLog[i].decisions.Sender == int64(rp.name) {
 				rp.sendClientResponses(cllientResponses)
 			}
-			rp.debug("Committed paxos consensus instance "+"."+strconv.Itoa(int(i))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime)), 5)
+			rp.debug("Committed paxos consensus instance "+"."+strconv.Itoa(int(i))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 5)
 			rp.paxosConsensus.lastCommittedLogIndex = i
 			rp.paxosConsensus.lastCommittedTime = time.Now()
 		} else {

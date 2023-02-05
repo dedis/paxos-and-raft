@@ -14,14 +14,9 @@ import (
 
 func (rp *Replica) sendPrepare() {
 
-	// replica ids start from 1 and goes to infinity
-	replicaId := -1
-
-	if replicaId == -1 {
-		panic("replica id not found")
-	}
-
 	if ((rp.paxosConsensus.view+1)%int32(rp.numReplicas))+1 == rp.name {
+
+		rp.debug("sending prepare for view "+strconv.Itoa(int(rp.paxosConsensus.view)), 5)
 
 		rp.createInstanceIfMissing(int(rp.paxosConsensus.lastCommittedLogIndex + 1))
 
@@ -57,6 +52,7 @@ func (rp *Replica) sendPrepare() {
 		}
 	} else {
 		rp.paxosConsensus.state = "A" // become an acceptor
+		rp.debug("became an acceptor for view "+strconv.Itoa(int(rp.paxosConsensus.view)), 5)
 	}
 	// cancel the view timer
 	if rp.paxosConsensus.viewTimer != nil {
@@ -112,6 +108,7 @@ func (rp *Replica) handlePrepare(message *proto.PaxosConsensus) {
 				rp.paxosConsensus.state = "A"
 				rp.paxosConsensus.currentLeader = message.Sender
 				rp.paxosConsensus.view = message.View
+				rp.debug("leader for view "+strconv.Itoa(int(rp.paxosConsensus.view))+" is "+strconv.Itoa(int(rp.paxosConsensus.currentLeader)), 5)
 			}
 
 			for i := message.InstanceNumber; i < int32(len(rp.paxosConsensus.replicatedLog)); i++ {
@@ -174,7 +171,7 @@ func (rp *Replica) handlePromise(message *proto.PaxosConsensus) {
 				}
 			}
 			rp.paxosConsensus.state = "L"
-			rp.debug("Became the leader in "+strconv.Itoa(int(rp.paxosConsensus.view))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime)), 4)
+			rp.debug("Became the leader in view "+strconv.Itoa(int(rp.paxosConsensus.view))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 5)
 			rp.paxosConsensus.currentLeader = rp.name
 		}
 	}
@@ -273,6 +270,7 @@ func (rp *Replica) handlePropose(message *proto.PaxosConsensus) {
 		for i := 0; i < len(message.DecidedValues); i++ {
 			rp.paxosConsensus.replicatedLog[message.DecidedValues[i].Number].decided = true
 			rp.paxosConsensus.replicatedLog[message.DecidedValues[i].Number].decisions = message.DecidedValues[i].Value
+			rp.debug("decided index "+fmt.Sprintf("%v", message.DecidedValues[i].Number), 5)
 		}
 		rp.updatePaxosSMR()
 
@@ -317,9 +315,8 @@ func (rp *Replica) handleAccept(message *proto.PaxosConsensus) {
 		if rp.paxosConsensus.replicatedLog[message.InstanceNumber].proposeResponses == rp.numReplicas/2+1 && rp.paxosConsensus.replicatedLog[message.InstanceNumber].decided == false {
 			rp.paxosConsensus.replicatedLog[message.InstanceNumber].decided = true
 			rp.paxosConsensus.replicatedLog[message.InstanceNumber].decisions = rp.paxosConsensus.replicatedLog[message.InstanceNumber].proposedValue
-
+			rp.debug("Decided upon receiving n-f accept message for instance "+strconv.Itoa(int(message.InstanceNumber)), 5)
 			rp.updatePaxosSMR()
-			rp.debug("Decided upon receiving n-f accept message for instance "+strconv.Itoa(int(message.InstanceNumber)), 0)
 		}
 	}
 }
@@ -329,10 +326,10 @@ func (rp *Replica) handleAccept(message *proto.PaxosConsensus) {
 */
 
 func (rp *Replica) handlePaxosInternalTimeout(message *proto.PaxosConsensus) {
-	rp.debug("Received a timeout for view "+strconv.Itoa(int(message.View))+" while my view is "+strconv.Itoa(int(rp.paxosConsensus.view))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime)), 0)
+	rp.debug("Received a timeout for view "+strconv.Itoa(int(message.View))+" while my view is "+strconv.Itoa(int(rp.paxosConsensus.view))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
 	// check if the view timeout is still valid
 	if rp.paxosConsensus.view == message.View {
-		rp.debug("Accepted a timeout for view "+strconv.Itoa(int(message.View))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime)), 0)
+		rp.debug("Accepted a timeout for view "+strconv.Itoa(int(message.View))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
 		rp.sendPrepare()
 	}
 }

@@ -21,6 +21,7 @@ func (cl *Client) handleClientResponseBatch(batch *proto.ClientBatch) {
 		time:  time.Now(), // record the time when the response was received
 	}
 	cl.debug("Added response Batch "+fmt.Sprintf(" %v ", batch), 0)
+	cl.lastSeenTimeLeader = time.Now()
 
 }
 
@@ -90,6 +91,7 @@ func (cl *Client) startRequestGenerators() {
 
 						if cl.defaultReplica != defaultReplica {
 							cl.defaultReplica = defaultReplica
+							cl.debug("changed leader to "+strconv.Itoa(int(cl.defaultReplica)), 5)
 							found = true
 						}
 					}
