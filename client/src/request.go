@@ -40,7 +40,7 @@ func (cl *Client) SendRequests() {
 
 	// end of test
 
-	time.Sleep(time.Duration(cl.testDuration) * time.Second) // additional sleep duration to make sure that all the in-flight responses are received
+	time.Sleep(time.Duration(cl.testDuration*2) * time.Second) // additional sleep duration to make sure that all the in-flight responses are received
 	fmt.Printf("Finish sending requests \n")
 	cl.computeStats()
 }
@@ -91,7 +91,7 @@ func (cl *Client) startRequestGenerators() {
 
 						if cl.defaultReplica != defaultReplica {
 							cl.defaultReplica = defaultReplica
-							cl.debug("changed leader to "+strconv.Itoa(int(cl.defaultReplica)), 5)
+							cl.debug("changed leader to "+strconv.Itoa(int(cl.defaultReplica)), 6)
 							found = true
 						}
 					}
