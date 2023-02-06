@@ -50,15 +50,17 @@ func (rp *Replica) sendClientResponses(responses []*proto.ClientBatch) {
 
 func (rp *Replica) sendDummyRequests() {
 	go func() {
-		time.Sleep(time.Duration(rp.viewTimeout/2) * time.Microsecond)
-		clientBatch := proto.ClientBatch{
-			UniqueId: "nil",
-			Requests: make([]*proto.SingleOperation, 0),
-			Sender:   -1,
+		for true {
+			time.Sleep(time.Duration(rp.viewTimeout/4) * time.Microsecond)
+			clientBatch := proto.ClientBatch{
+				UniqueId: "nil",
+				Requests: make([]*proto.SingleOperation, 0),
+				Sender:   -1,
+			}
+			rp.sendMessage(rp.name, common.RPCPair{
+				Code: rp.messageCodes.ClientBatchRpc,
+				Obj:  &clientBatch,
+			})
 		}
-		rp.sendMessage(rp.name, common.RPCPair{
-			Code: rp.messageCodes.ClientBatchRpc,
-			Obj:  &clientBatch,
-		})
 	}()
 }
