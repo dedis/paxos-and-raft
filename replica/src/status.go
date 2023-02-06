@@ -41,6 +41,7 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 			if rp.consAlgo == "paxos" {
 				rp.paxosConsensus.run()
 			}
+			rp.sendDummyRequests()
 		}
 	}
 

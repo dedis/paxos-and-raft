@@ -214,6 +214,8 @@ func (rp *Replica) sendPropose(requests []*proto.ClientBatch) {
 			})
 		}
 
+		rp.paxosConsensus.decidedIndexes = make([]int, 0)
+
 		// send a propose message
 		for name, _ := range rp.replicaAddrList {
 			proposeMsg := proto.PaxosConsensus{
@@ -235,7 +237,7 @@ func (rp *Replica) sendPropose(requests []*proto.ClientBatch) {
 			rp.sendMessage(name, rpcPair)
 			rp.debug("Sent propose to "+strconv.Itoa(int(name)), 1)
 		}
-	} else {
+	} else if rp.paxosConsensus.state == "L" && rp.paxosConsensus.lastPreparedBallot >= rp.paxosConsensus.lastPromisedBallot {
 		rp.incomingRequests = append(rp.incomingRequests, requests...)
 	}
 }
@@ -317,6 +319,7 @@ func (rp *Replica) handleAccept(message *proto.PaxosConsensus) {
 			rp.paxosConsensus.replicatedLog[message.InstanceNumber].decisions = rp.paxosConsensus.replicatedLog[message.InstanceNumber].proposedValue
 			rp.debug("Decided upon receiving n-f accept message for instance "+strconv.Itoa(int(message.InstanceNumber)), 5)
 			rp.updatePaxosSMR()
+			rp.paxosConsensus.decidedIndexes = append(rp.paxosConsensus.decidedIndexes, int(message.InstanceNumber))
 		}
 	}
 }
@@ -326,10 +329,10 @@ func (rp *Replica) handleAccept(message *proto.PaxosConsensus) {
 */
 
 func (rp *Replica) handlePaxosInternalTimeout(message *proto.PaxosConsensus) {
-	rp.debug("Received a timeout for view "+strconv.Itoa(int(message.View))+" while my view is "+strconv.Itoa(int(rp.paxosConsensus.view))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
+	rp.debug("Received a timeout for view "+strconv.Itoa(int(message.View))+" while my view is "+strconv.Itoa(int(rp.paxosConsensus.view))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 5)
 	// check if the view timeout is still valid
 	if rp.paxosConsensus.view == message.View {
-		rp.debug("Accepted a timeout for view "+strconv.Itoa(int(message.View))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
+		rp.debug("Accepted a timeout for view "+strconv.Itoa(int(message.View))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 5)
 		rp.sendPrepare()
 	}
 }

@@ -45,3 +45,20 @@ func (rp *Replica) sendClientResponses(responses []*proto.ClientBatch) {
 		rp.debug("send client response to "+fmt.Sprintf("%v", responses[i].Sender), 0)
 	}
 }
+
+// empty replica batch
+
+func (rp *Replica) sendDummyRequests() {
+	go func() {
+		time.Sleep(time.Duration(rp.viewTimeout/2) * time.Microsecond)
+		clientBatch := proto.ClientBatch{
+			UniqueId: "nil",
+			Requests: make([]*proto.SingleOperation, 0),
+			Sender:   -1,
+		}
+		rp.sendMessage(rp.name, common.RPCPair{
+			Code: rp.messageCodes.ClientBatchRpc,
+			Obj:  &clientBatch,
+		})
+	}()
+}
