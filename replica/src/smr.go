@@ -38,6 +38,9 @@ func (rp *Replica) updateApplicationLogic(requests []*proto.ClientBatch) []*prot
 
 func (rp *Replica) sendClientResponses(responses []*proto.ClientBatch) {
 	for i := 0; i < len(responses); i++ {
+		if responses[i].Sender == -1 {
+			continue
+		}
 		rp.sendMessage(int32(responses[i].Sender), common.RPCPair{
 			Code: rp.messageCodes.ClientBatchRpc,
 			Obj:  responses[i],
