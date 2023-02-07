@@ -4,6 +4,7 @@ import (
 	"async-consensus/common"
 	"async-consensus/proto"
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -207,7 +208,7 @@ func (rp *Replica) handlePaxosConsensus(message *proto.PaxosConsensus) {
 
 func (rp *Replica) setPaxosViewTimer(view int32) {
 
-	rp.paxosConsensus.viewTimer = common.NewTimerWithCancel(time.Duration(rp.viewTimeout) * time.Microsecond)
+	rp.paxosConsensus.viewTimer = common.NewTimerWithCancel(time.Duration(rp.viewTimeout+rand.Intn(rp.viewTimeout/2)) * time.Microsecond)
 
 	rp.paxosConsensus.viewTimer.SetTimeoutFuntion(func() {
 

@@ -27,7 +27,7 @@ type Raft struct {
 	log                  []raftInstance
 	commitIndex          int64
 	nextFreeIndex        int
-	votedFor             int32
+	votedFor             map[int]int32
 	currentTerm          int64
 	lastProposedLogIndex int
 
@@ -71,14 +71,14 @@ func InitRaftConsensus(numReplicas int, name int32, replica *Replica, pipelineLe
 		log:                  replicatedLog,
 		commitIndex:          0,
 		nextFreeIndex:        1,
-		votedFor:             -1,
+		votedFor:             make(map[int]int32),
 		currentTerm:          0,
 		lastProposedLogIndex: 0,
 		viewTimer:            nil,
 		startTime:            time.Time{},
 		lastCommittedTime:    time.Time{},
 		lastProposedTime:     time.Time{},
-		state:                "A",
+		state:                "F",
 		replica:              replica,
 		pipelineLength:       pipelineLength,
 	}
@@ -93,6 +93,9 @@ func (r *Raft) run() {
 	initLeader := int32(2)
 
 	if r.name == initLeader {
+		r.currentTerm++
+		r.state = "C"
+		r.votedFor[int(r.currentTerm)] = r.name
 		r.replica.sendRequestVote()
 	}
 

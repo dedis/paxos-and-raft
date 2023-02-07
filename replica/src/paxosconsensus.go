@@ -4,7 +4,6 @@ import (
 	"async-consensus/common"
 	"async-consensus/proto"
 	"fmt"
-	"math/rand"
 	"strconv"
 	"time"
 )
@@ -15,46 +14,41 @@ import (
 
 func (rp *Replica) sendPrepare() {
 
-	if ((rp.paxosConsensus.view+1)%int32(rp.numReplicas))+1 == rp.name || rand.Intn(rp.numReplicas) == 1 {
+	rp.debug("sending prepare for view "+strconv.Itoa(int(rp.paxosConsensus.view)), 5)
 
-		rp.debug("sending prepare for view "+strconv.Itoa(int(rp.paxosConsensus.view)), 5)
+	rp.createPaxosInstanceIfMissing(int(rp.paxosConsensus.lastCommittedLogIndex + 1))
 
-		rp.createPaxosInstanceIfMissing(int(rp.paxosConsensus.lastCommittedLogIndex + 1))
+	// reset the promise response map, because all we care is new view change messages
+	rp.paxosConsensus.promiseResponses = make(map[int32][]*proto.PaxosConsensus)
 
-		// reset the promise response map, because all we care is new view change messages
-		rp.paxosConsensus.promiseResponses = make(map[int32][]*proto.PaxosConsensus)
-
-		if rp.paxosConsensus.lastPromisedBallot > rp.paxosConsensus.lastPreparedBallot {
-			rp.paxosConsensus.lastPreparedBallot = rp.paxosConsensus.lastPromisedBallot
-		}
-		rp.paxosConsensus.lastPreparedBallot = rp.paxosConsensus.lastPreparedBallot + 100*rp.name + 2
-
-		rp.paxosConsensus.state = "C" // become a contestant
-		// increase the view number
-		rp.paxosConsensus.view++
-		// broadcast a prepare message
-		for name, _ := range rp.replicaAddrList {
-			prepareMsg := proto.PaxosConsensus{
-				Sender:         rp.name,
-				Receiver:       name,
-				Type:           1,
-				InstanceNumber: rp.paxosConsensus.lastCommittedLogIndex + 1,
-				Ballot:         rp.paxosConsensus.lastPreparedBallot,
-				View:           rp.paxosConsensus.view,
-			}
-
-			rpcPair := common.RPCPair{
-				Code: rp.messageCodes.PaxosConsensus,
-				Obj:  &prepareMsg,
-			}
-
-			rp.sendMessage(name, rpcPair)
-			rp.debug("Sent prepare to "+strconv.Itoa(int(name)), 0)
-		}
-	} else {
-		rp.paxosConsensus.state = "A" // become an acceptor
-		rp.debug("became an acceptor for view "+strconv.Itoa(int(rp.paxosConsensus.view))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 6)
+	if rp.paxosConsensus.lastPromisedBallot > rp.paxosConsensus.lastPreparedBallot {
+		rp.paxosConsensus.lastPreparedBallot = rp.paxosConsensus.lastPromisedBallot
 	}
+	rp.paxosConsensus.lastPreparedBallot = rp.paxosConsensus.lastPreparedBallot + 100*rp.name + 2
+
+	rp.paxosConsensus.state = "C" // become a contestant
+	// increase the view number
+	rp.paxosConsensus.view++
+	// broadcast a prepare message
+	for name, _ := range rp.replicaAddrList {
+		prepareMsg := proto.PaxosConsensus{
+			Sender:         rp.name,
+			Receiver:       name,
+			Type:           1,
+			InstanceNumber: rp.paxosConsensus.lastCommittedLogIndex + 1,
+			Ballot:         rp.paxosConsensus.lastPreparedBallot,
+			View:           rp.paxosConsensus.view,
+		}
+
+		rpcPair := common.RPCPair{
+			Code: rp.messageCodes.PaxosConsensus,
+			Obj:  &prepareMsg,
+		}
+
+		rp.sendMessage(name, rpcPair)
+		rp.debug("Sent prepare to "+strconv.Itoa(int(name)), 0)
+	}
+
 	// cancel the view timer
 	if rp.paxosConsensus.viewTimer != nil {
 		rp.paxosConsensus.viewTimer.Cancel()

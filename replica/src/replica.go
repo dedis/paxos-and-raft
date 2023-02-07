@@ -139,6 +139,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 	rp.RegisterRPC(new(proto.ClientBatch), rp.messageCodes.ClientBatchRpc)
 	rp.RegisterRPC(new(proto.Status), rp.messageCodes.StatusRPC)
 	rp.RegisterRPC(new(proto.PaxosConsensus), rp.messageCodes.PaxosConsensus)
+	rp.RegisterRPC(new(proto.RaftConsensus), rp.messageCodes.RaftConsensus)
 
 	rp.debug("Registered RPCs in the table", 0)
 
