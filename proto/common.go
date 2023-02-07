@@ -21,6 +21,7 @@ type MessageCode struct {
 	ClientBatchRpc uint8
 	StatusRPC      uint8
 	PaxosConsensus uint8
+	RaftConsensus  uint8
 }
 
 /*
@@ -32,5 +33,6 @@ func GetRPCCodes() MessageCode {
 		ClientBatchRpc: 1,
 		StatusRPC:      2,
 		PaxosConsensus: 3,
+		RaftConsensus:  4,
 	}
 }

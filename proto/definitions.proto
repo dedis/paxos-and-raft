@@ -64,3 +64,30 @@ message PaxosConsensus {
   ReplicaBatch propose_value = 9;
   repeated instance decided_values = 10; // decided value for last instances
 }
+
+/*
+  RaftConsensus defines the single consensus proto message type used for Raft
+*/
+
+message RaftConsensus{
+  int32 sender = 1; // leader id for append request, candidate id for leader request
+  int32 receiver = 2;
+
+  int32 type = 3; // 1-append request, 2-append response, 3-leader request, 4-leader response, 5 internal timeout
+  string note = 4;
+
+  int64 term = 5; // for append entry, append response, leader request, leader response
+  int64 prevLogIndex = 6; // for append request the prevLogIndex, for append Response the last index, last log index for leader request
+  int64 prevLogTerm = 7; // for append request the prev log term, for leader request the last log term
+  repeated string prevLogValues = 8; // for append request
+
+  message entry {
+    ReplicaBatch value = 1;
+    int64 term = 2;
+  }
+
+  repeated entry entries = 9; // for append request
+  int64 leaderCommit = 10; // for append request
+
+  bool success = 11; // for append response, for vote granted in leader response
+}
