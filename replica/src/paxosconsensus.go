@@ -19,7 +19,7 @@ func (rp *Replica) sendPrepare() {
 
 		rp.debug("sending prepare for view "+strconv.Itoa(int(rp.paxosConsensus.view)), 5)
 
-		rp.createInstanceIfMissing(int(rp.paxosConsensus.lastCommittedLogIndex + 1))
+		rp.createPaxosInstanceIfMissing(int(rp.paxosConsensus.lastCommittedLogIndex + 1))
 
 		// reset the promise response map, because all we care is new view change messages
 		rp.paxosConsensus.promiseResponses = make(map[int32][]*proto.PaxosConsensus)
@@ -164,7 +164,7 @@ func (rp *Replica) handlePromise(message *proto.PaxosConsensus) {
 				lastAcceptedEntries := rp.paxosConsensus.promiseResponses[message.View][i].PromiseReply
 				for j := 0; j < len(lastAcceptedEntries); j++ {
 					instanceNumber := lastAcceptedEntries[j].Number
-					rp.createInstanceIfMissing(int(instanceNumber))
+					rp.createPaxosInstanceIfMissing(int(instanceNumber))
 					if lastAcceptedEntries[j].Ballot > rp.paxosConsensus.replicatedLog[instanceNumber].highestSeenAcceptedBallot {
 						rp.paxosConsensus.replicatedLog[instanceNumber].highestSeenAcceptedBallot = lastAcceptedEntries[j].Ballot
 						rp.paxosConsensus.replicatedLog[instanceNumber].highestSeenAcceptedValue = lastAcceptedEntries[j].Value
@@ -189,7 +189,7 @@ func (rp *Replica) sendPropose(requests []*proto.ClientBatch) {
 		rp.paxosConsensus.lastPreparedBallot >= rp.paxosConsensus.lastPromisedBallot &&
 		(rp.paxosConsensus.lastProposedLogIndex-rp.paxosConsensus.lastCommittedLogIndex) < int32(rp.paxosConsensus.pipeLineLength) {
 		rp.paxosConsensus.lastProposedLogIndex++
-		rp.createInstanceIfMissing(int(rp.paxosConsensus.lastProposedLogIndex))
+		rp.createPaxosInstanceIfMissing(int(rp.paxosConsensus.lastProposedLogIndex))
 
 		proposeValue := &proto.ReplicaBatch{
 			UniqueId: "",
@@ -249,7 +249,7 @@ func (rp *Replica) sendPropose(requests []*proto.ClientBatch) {
 */
 
 func (rp *Replica) handlePropose(message *proto.PaxosConsensus) {
-	rp.createInstanceIfMissing(int(message.InstanceNumber))
+	rp.createPaxosInstanceIfMissing(int(message.InstanceNumber))
 
 	// if the message is from a future view, become an acceptor and set the new leader
 	if message.View > rp.paxosConsensus.view {

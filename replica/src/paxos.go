@@ -131,7 +131,7 @@ func (p *Paxos) run() {
 	append N new instances to the log
 */
 
-func (rp *Replica) createNInstances(number int) {
+func (rp *Replica) createNPaxosInstances(number int) {
 
 	for i := 0; i < number; i++ {
 
@@ -155,12 +155,12 @@ func (rp *Replica) createNInstances(number int) {
 	check if the instance number instance is already there, if not create 10 new instances
 */
 
-func (rp *Replica) createInstanceIfMissing(instanceNum int) {
+func (rp *Replica) createPaxosInstanceIfMissing(instanceNum int) {
 
 	numMissingEntries := instanceNum - rp.paxosConsensus.nextFreeInstance + 1
 
 	if numMissingEntries > 0 {
-		rp.createNInstances(numMissingEntries)
+		rp.createNPaxosInstances(numMissingEntries)
 	}
 }
 

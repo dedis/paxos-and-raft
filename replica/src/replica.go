@@ -50,6 +50,7 @@ type Replica struct {
 	serverStarted bool // to bootstrap
 
 	paxosConsensus *Paxos // Paxos consensus data structs
+	raftConsensus  *Raft  // Raft consensus data structs
 
 	consensusStarted bool
 	viewTimeout      int // view change timeout in micro seconds
@@ -114,6 +115,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 	}
 
 	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers), name, &rp, pipelineLength)
+	rp.raftConsensus = InitRaftConsensus(len(cfg.Peers), name, &rp, pipelineLength)
 
 	rp.debug("Created a new replica instance", 0)
 
