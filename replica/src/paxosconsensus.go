@@ -4,6 +4,7 @@ import (
 	"async-consensus/common"
 	"async-consensus/proto"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"time"
 )
@@ -14,7 +15,7 @@ import (
 
 func (rp *Replica) sendPrepare() {
 
-	if ((rp.paxosConsensus.view+1)%int32(rp.numReplicas))+1 == rp.name {
+	if ((rp.paxosConsensus.view+1)%int32(rp.numReplicas))+1 == rp.name || rand.Intn(rp.numReplicas) == 1 {
 
 		rp.debug("sending prepare for view "+strconv.Itoa(int(rp.paxosConsensus.view)), 5)
 

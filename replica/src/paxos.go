@@ -13,7 +13,7 @@ import (
 	an instance defines the content of a single Paxos consensus instance
 */
 
-type Instance struct {
+type PaxosInstance struct {
 	proposedBallot int32
 	promisedBallot int32
 	acceptedBallot int32
@@ -41,8 +41,8 @@ type Paxos struct {
 	lastPromisedBallot    int32 // last promised ballot number, for each next instance created this should be used as the promised ballot
 	lastPreparedBallot    int32 // last prepared ballot as the proposer, all future instances should propose for this ballot number
 	lastProposedLogIndex  int32
-	lastCommittedLogIndex int32      // the last log position that is committed
-	replicatedLog         []Instance // the replicated log of commands
+	lastCommittedLogIndex int32           // the last log position that is committed
+	replicatedLog         []PaxosInstance // the replicated log of commands
 	viewTimer             *common.TimerWithCancel
 	startTime             time.Time                         // time when the consensus was started
 	lastCommittedTime     time.Time                         // time when the last consensus instance was committed
@@ -61,10 +61,10 @@ type Paxos struct {
 
 func InitPaxosConsensus(numReplicas int, name int32, replica *Replica, pipelineLength int) *Paxos {
 
-	replicatedLog := make([]Instance, 0)
+	replicatedLog := make([]PaxosInstance, 0)
 	// create the genesis slot
 
-	replicatedLog = append(replicatedLog, Instance{
+	replicatedLog = append(replicatedLog, PaxosInstance{
 		proposedBallot:            -1,
 		promisedBallot:            -1,
 		acceptedBallot:            -1,
@@ -78,7 +78,7 @@ func InitPaxosConsensus(numReplicas int, name int32, replica *Replica, pipelineL
 
 	// create initial slots
 	for i := 1; i < 100; i++ {
-		replicatedLog = append(replicatedLog, Instance{
+		replicatedLog = append(replicatedLog, PaxosInstance{
 			proposedBallot:            -1,
 			promisedBallot:            -1,
 			acceptedBallot:            -1,
@@ -135,7 +135,7 @@ func (rp *Replica) createNInstances(number int) {
 
 	for i := 0; i < number; i++ {
 
-		rp.paxosConsensus.replicatedLog = append(rp.paxosConsensus.replicatedLog, Instance{
+		rp.paxosConsensus.replicatedLog = append(rp.paxosConsensus.replicatedLog, PaxosInstance{
 			proposedBallot:            -1,
 			promisedBallot:            rp.paxosConsensus.lastPromisedBallot,
 			acceptedBallot:            -1,
