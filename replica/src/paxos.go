@@ -224,7 +224,7 @@ func (rp *Replica) setPaxosViewTimer(view int32) {
 			Obj:  &internalTimeoutNotification,
 		}
 		rp.sendMessage(rp.name, rpcPair)
-		rp.debug("Sent an internal timeout notification for view "+strconv.Itoa(int(rp.paxosConsensus.view))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
+		rp.debug("Sent an internal timeout notification for view "+strconv.Itoa(int(view))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
 
 	})
 	rp.paxosConsensus.viewTimer.Start()
