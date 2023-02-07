@@ -40,6 +40,10 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 			rp.consensusStarted = true
 			if rp.consAlgo == "paxos" {
 				rp.paxosConsensus.run()
+				rp.debug("started paxos consensus with initial prepare", 0)
+			} else if rp.consAlgo == "raft" {
+				rp.raftConsensus.run()
+				rp.debug("started raft consensus with initial leader request", 0)
 			}
 			rp.sendDummyRequests()
 		}
