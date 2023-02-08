@@ -64,3 +64,45 @@ message PaxosConsensus {
   ReplicaBatch propose_value = 9;
   repeated instance decided_values = 10; // decided value for last instances
 }
+
+// raft proto structs
+
+message AppendRequest {
+
+  int64 term = 1;
+  string leaderId = 2;
+  int64 prevLogIndex = 3;
+  int64 prevLogTerm = 4;
+  string prevLogValue = 5;
+
+  message entry {
+    ReplicaBatch value = 1;
+    int64 term = 2;
+  }
+  repeated entry entries = 6;
+  int64 leaderCommit = 7;
+}
+
+message AppendResponse {
+  int64 term = 1;
+  bool success = 2;
+  int64 lastIndex = 3;
+}
+
+
+message LeaderRequest {
+  int64  term = 1;
+  string candidateId = 2;
+  int64 lastLogIndex = 3;
+  int64   lastLogTerm = 4;
+}
+
+message LeaderResponse {
+  int64 term = 1;
+  bool voteGranted = 2;
+}
+
+service Consensus {
+  rpc AppendEntries (AppendRequest) returns (AppendResponse);
+  rpc RequestVote (LeaderRequest) returns (LeaderResponse);
+}
