@@ -385,9 +385,9 @@ type RaftConsensus struct {
 	Type          int32                 `protobuf:"varint,3,opt,name=type,proto3" json:"type,omitempty"` // 1-append request, 2-append response, 3-leader request, 4-leader response, 5 internal timeout
 	Note          string                `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
 	Term          int64                 `protobuf:"varint,5,opt,name=term,proto3" json:"term,omitempty"`                  // for append entry, append response, leader request, leader response
-	PrevLogIndex  int64                 `protobuf:"varint,6,opt,name=prevLogIndex,proto3" json:"prevLogIndex,omitempty"`  // for append request the prevLogIndex, for append Response the last index, last log index for leader request
+	PrevLogIndex  int64                 `protobuf:"varint,6,opt,name=prevLogIndex,proto3" json:"prevLogIndex,omitempty"`  // for append request the prevLogIndex, for append Response the prevLogIndex of the append request in case of failure, last log index for leader request
 	PrevLogTerm   int64                 `protobuf:"varint,7,opt,name=prevLogTerm,proto3" json:"prevLogTerm,omitempty"`    // for append request the prev log term, for leader request the last log term
-	PrevLogValues []string              `protobuf:"bytes,8,rep,name=prevLogValues,proto3" json:"prevLogValues,omitempty"` // for append request
+	PrevLogValues string                `protobuf:"bytes,8,opt,name=prevLogValues,proto3" json:"prevLogValues,omitempty"` // for append request
 	Entries       []*RaftConsensusEntry `protobuf:"bytes,9,rep,name=entries,proto3" json:"entries,omitempty"`             // for append request
 	LeaderCommit  int64                 `protobuf:"varint,10,opt,name=leaderCommit,proto3" json:"leaderCommit,omitempty"` // for append request
 	Success       bool                  `protobuf:"varint,11,opt,name=success,proto3" json:"success,omitempty"`           // for append response, for vote granted in leader response
@@ -474,11 +474,11 @@ func (x *RaftConsensus) GetPrevLogTerm() int64 {
 	return 0
 }
 
-func (x *RaftConsensus) GetPrevLogValues() []string {
+func (x *RaftConsensus) GetPrevLogValues() string {
 	if x != nil {
 		return x.PrevLogValues
 	}
-	return nil
+	return ""
 }
 
 func (x *RaftConsensus) GetEntries() []*RaftConsensusEntry {
@@ -689,7 +689,7 @@ var file_proto_definitions_proto_rawDesc = []byte{
 	0x20, 0x0a, 0x0b, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x54, 0x65, 0x72, 0x6d, 0x18, 0x07,
 	0x20, 0x01, 0x28, 0x03, 0x52, 0x0b, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x54, 0x65, 0x72,
 	0x6d, 0x12, 0x24, 0x0a, 0x0d, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x56, 0x61, 0x6c, 0x75,
-	0x65, 0x73, 0x18, 0x08, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0d, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f,
+	0x65, 0x73, 0x18, 0x08, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f,
 	0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x12, 0x2e, 0x0a, 0x07, 0x65, 0x6e, 0x74, 0x72, 0x69,
 	0x65, 0x73, 0x18, 0x09, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x52, 0x61, 0x66, 0x74, 0x43,
 	0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x65, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x07,

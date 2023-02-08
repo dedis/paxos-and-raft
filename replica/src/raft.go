@@ -4,6 +4,7 @@ import (
 	"async-consensus/common"
 	"async-consensus/proto"
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -12,10 +13,11 @@ import (
 // entry defines a single log entry in raft
 
 type raftInstance struct {
-	term      int64
-	commands  *proto.ReplicaBatch
-	decided   bool
-	decisions *proto.ReplicaBatch
+	term        int64
+	commands    *proto.ReplicaBatch
+	decided     bool
+	decisions   *proto.ReplicaBatch
+	numSucccess int
 }
 
 // raft defines the data used for Raft SMR
@@ -24,21 +26,23 @@ type Raft struct {
 	name     int32
 	numNodes int32
 
-	log                  []raftInstance
-	commitIndex          int64
-	nextFreeIndex        int
-	votedFor             map[int]int32
-	currentTerm          int64
-	lastProposedLogIndex int
+	log           []raftInstance
+	commitIndex   int64
+	nextFreeIndex int
+	votedFor      map[int]int32
+	currentTerm   int64
 
 	viewTimer         *common.TimerWithCancel
 	startTime         time.Time
 	lastCommittedTime time.Time
 	lastProposedTime  time.Time
 
-	state          string
-	replica        *Replica
-	pipelineLength int
+	state           string
+	replica         *Replica
+	pipelineLength  int
+	leaderResponses map[int][]*proto.RaftConsensus // leader response messages received
+
+	batchCounter int
 }
 
 /*
@@ -66,21 +70,22 @@ func InitRaftConsensus(numReplicas int, name int32, replica *Replica, pipelineLe
 	})
 
 	return &Raft{
-		name:                 name,
-		numNodes:             int32(numReplicas),
-		log:                  replicatedLog,
-		commitIndex:          0,
-		nextFreeIndex:        1,
-		votedFor:             make(map[int]int32),
-		currentTerm:          0,
-		lastProposedLogIndex: 0,
-		viewTimer:            nil,
-		startTime:            time.Time{},
-		lastCommittedTime:    time.Time{},
-		lastProposedTime:     time.Time{},
-		state:                "F",
-		replica:              replica,
-		pipelineLength:       pipelineLength,
+		name:              name,
+		numNodes:          int32(numReplicas),
+		log:               replicatedLog,
+		commitIndex:       0,
+		nextFreeIndex:     1,
+		votedFor:          make(map[int]int32),
+		currentTerm:       0,
+		viewTimer:         nil,
+		startTime:         time.Time{},
+		lastCommittedTime: time.Time{},
+		lastProposedTime:  time.Time{},
+		state:             "F",
+		replica:           replica,
+		pipelineLength:    pipelineLength,
+		leaderResponses:   make(map[int][]*proto.RaftConsensus),
+		batchCounter:      0,
 	}
 }
 
@@ -110,10 +115,11 @@ func (rp *Replica) createNRaftInstances(number int) {
 	for i := 0; i < number; i++ {
 
 		rp.raftConsensus.log = append(rp.raftConsensus.log, raftInstance{
-			term:      rp.raftConsensus.currentTerm,
-			commands:  nil,
-			decided:   false,
-			decisions: nil,
+			term:        rp.raftConsensus.currentTerm,
+			commands:    nil,
+			decided:     false,
+			decisions:   nil,
+			numSucccess: 0,
 		})
 
 		rp.raftConsensus.nextFreeIndex++
@@ -176,7 +182,7 @@ func (rp *Replica) handleRaftConsensus(message *proto.RaftConsensus) {
 
 func (rp *Replica) setRaftViewTimer(term int32) {
 
-	rp.raftConsensus.viewTimer = common.NewTimerWithCancel(time.Duration(rp.viewTimeout) * time.Microsecond)
+	rp.raftConsensus.viewTimer = common.NewTimerWithCancel(time.Duration(rp.viewTimeout+rand.Intn(rp.viewTimeout/2)) * time.Microsecond)
 
 	rp.raftConsensus.viewTimer.SetTimeoutFuntion(func() {
 
@@ -193,7 +199,7 @@ func (rp *Replica) setRaftViewTimer(term int32) {
 			Obj:  &internalTimeoutNotification,
 		}
 		rp.sendMessage(rp.name, rpcPair)
-		rp.debug("Sent an internal timeout notification for view "+strconv.Itoa(int(term))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.raftConsensus.startTime).Milliseconds()), 0)
+		rp.debug("Sent an internal timeout notification for term "+strconv.Itoa(int(term))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.raftConsensus.startTime).Milliseconds()), 0)
 
 	})
 	rp.raftConsensus.viewTimer.Start()

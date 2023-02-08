@@ -77,9 +77,9 @@ message RaftConsensus{
   string note = 4;
 
   int64 term = 5; // for append entry, append response, leader request, leader response
-  int64 prevLogIndex = 6; // for append request the prevLogIndex, for append Response the last index, last log index for leader request
+  int64 prevLogIndex = 6; // for append request the prevLogIndex, for append Response the prevLogIndex of the append request in case of failure, last log index for leader request
   int64 prevLogTerm = 7; // for append request the prev log term, for leader request the last log term
-  repeated string prevLogValues = 8; // for append request
+  string prevLogValues = 8; // for append request
 
   message entry {
     ReplicaBatch value = 1;

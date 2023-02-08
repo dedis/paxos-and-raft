@@ -178,10 +178,16 @@ func (rp *Replica) handlePromise(message *proto.PaxosConsensus) {
 */
 
 func (rp *Replica) sendPropose(requests []*proto.ClientBatch) {
+
+	if rp.paxosConsensus.lastProposedLogIndex < rp.paxosConsensus.lastCommittedLogIndex {
+		rp.paxosConsensus.lastProposedLogIndex = rp.paxosConsensus.lastCommittedLogIndex
+	}
+
 	// requests can be empty
 	if rp.paxosConsensus.state == "L" &&
 		rp.paxosConsensus.lastPreparedBallot >= rp.paxosConsensus.lastPromisedBallot &&
 		(rp.paxosConsensus.lastProposedLogIndex-rp.paxosConsensus.lastCommittedLogIndex) < int32(rp.paxosConsensus.pipeLineLength) {
+
 		rp.paxosConsensus.lastProposedLogIndex++
 		rp.createPaxosInstanceIfMissing(int(rp.paxosConsensus.lastProposedLogIndex))
 
