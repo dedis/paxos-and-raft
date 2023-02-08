@@ -1,13 +1,13 @@
 package src
 
 import (
-	"async-consensus/common"
-	"async-consensus/configuration"
-	"async-consensus/proto"
 	"bufio"
 	"fmt"
 	"math/rand"
 	"os"
+	"paxos_raft/common"
+	"paxos_raft/configuration"
+	"paxos_raft/proto"
 	"strconv"
 	"sync"
 	"time"

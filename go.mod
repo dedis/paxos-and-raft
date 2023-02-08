@@ -1,4 +1,4 @@
-module async-consensus
+module paxos_raft
 
 go 1.17
 

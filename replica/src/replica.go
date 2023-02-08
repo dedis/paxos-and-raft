@@ -1,13 +1,13 @@
 package src
 
 import (
-	"async-consensus/benchmark"
-	"async-consensus/common"
-	"async-consensus/configuration"
-	"async-consensus/proto"
 	"bufio"
 	"fmt"
 	"os"
+	"paxos_raft/benchmark"
+	"paxos_raft/common"
+	"paxos_raft/configuration"
+	"paxos_raft/proto"
 	"strconv"
 	"sync"
 )

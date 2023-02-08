@@ -1,9 +1,9 @@
 package main
 
 import (
-	"async-consensus/client/src"
-	"async-consensus/configuration"
 	"flag"
+	"paxos_raft/client/src"
+	"paxos_raft/configuration"
 	"time"
 )
 

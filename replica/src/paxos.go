@@ -1,11 +1,11 @@
 package src
 
 import (
-	"async-consensus/common"
-	"async-consensus/proto"
 	"fmt"
 	"math/rand"
 	"os"
+	"paxos_raft/common"
+	"paxos_raft/proto"
 	"strconv"
 	"time"
 )

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"async-consensus/configuration"
-	"async-consensus/replica/src"
 	"flag"
 	"fmt"
 	"os"
+	"paxos_raft/configuration"
+	"paxos_raft/replica/src"
 )
 
 func main() {

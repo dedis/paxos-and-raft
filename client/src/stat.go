@@ -1,10 +1,10 @@
 package src
 
 import (
-	"async-consensus/proto"
 	"fmt"
 	"github.com/montanaflynn/stats"
 	"os"
+	"paxos_raft/proto"
 	"strconv"
 )
 

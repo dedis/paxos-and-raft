@@ -1,13 +1,13 @@
 package src
 
 import (
-	"async-consensus/common"
-	"async-consensus/proto"
 	"bufio"
 	"encoding/binary"
 	"fmt"
 	"io"
 	"net"
+	"paxos_raft/common"
+	"paxos_raft/proto"
 	"strconv"
 )
 

@@ -1,10 +1,10 @@
 package common
 
 import (
-	"async-consensus/configuration"
-	"async-consensus/proto"
 	"bytes"
 	"encoding/gob"
+	"paxos_raft/configuration"
+	"paxos_raft/proto"
 	"strconv"
 	"time"
 )

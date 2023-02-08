@@ -375,6 +375,290 @@ func (x *PaxosConsensus) GetDecidedValues() []*PaxosConsensusInstance {
 	return nil
 }
 
+type AppendRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Term         int64                 `protobuf:"varint,1,opt,name=term,proto3" json:"term,omitempty"`
+	LeaderId     string                `protobuf:"bytes,2,opt,name=leaderId,proto3" json:"leaderId,omitempty"`
+	PrevLogIndex int64                 `protobuf:"varint,3,opt,name=prevLogIndex,proto3" json:"prevLogIndex,omitempty"`
+	PrevLogTerm  int64                 `protobuf:"varint,4,opt,name=prevLogTerm,proto3" json:"prevLogTerm,omitempty"`
+	PrevLogValue string                `protobuf:"bytes,5,opt,name=prevLogValue,proto3" json:"prevLogValue,omitempty"`
+	Entries      []*AppendRequestEntry `protobuf:"bytes,6,rep,name=entries,proto3" json:"entries,omitempty"`
+	LeaderCommit int64                 `protobuf:"varint,7,opt,name=leaderCommit,proto3" json:"leaderCommit,omitempty"`
+}
+
+func (x *AppendRequest) Reset() {
+	*x = AppendRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_definitions_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AppendRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppendRequest) ProtoMessage() {}
+
+func (x *AppendRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_definitions_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppendRequest.ProtoReflect.Descriptor instead.
+func (*AppendRequest) Descriptor() ([]byte, []int) {
+	return file_proto_definitions_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *AppendRequest) GetTerm() int64 {
+	if x != nil {
+		return x.Term
+	}
+	return 0
+}
+
+func (x *AppendRequest) GetLeaderId() string {
+	if x != nil {
+		return x.LeaderId
+	}
+	return ""
+}
+
+func (x *AppendRequest) GetPrevLogIndex() int64 {
+	if x != nil {
+		return x.PrevLogIndex
+	}
+	return 0
+}
+
+func (x *AppendRequest) GetPrevLogTerm() int64 {
+	if x != nil {
+		return x.PrevLogTerm
+	}
+	return 0
+}
+
+func (x *AppendRequest) GetPrevLogValue() string {
+	if x != nil {
+		return x.PrevLogValue
+	}
+	return ""
+}
+
+func (x *AppendRequest) GetEntries() []*AppendRequestEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+func (x *AppendRequest) GetLeaderCommit() int64 {
+	if x != nil {
+		return x.LeaderCommit
+	}
+	return 0
+}
+
+type AppendResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Term      int64 `protobuf:"varint,1,opt,name=term,proto3" json:"term,omitempty"`
+	Success   bool  `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
+	LastIndex int64 `protobuf:"varint,3,opt,name=lastIndex,proto3" json:"lastIndex,omitempty"`
+}
+
+func (x *AppendResponse) Reset() {
+	*x = AppendResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_definitions_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AppendResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppendResponse) ProtoMessage() {}
+
+func (x *AppendResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_definitions_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppendResponse.ProtoReflect.Descriptor instead.
+func (*AppendResponse) Descriptor() ([]byte, []int) {
+	return file_proto_definitions_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *AppendResponse) GetTerm() int64 {
+	if x != nil {
+		return x.Term
+	}
+	return 0
+}
+
+func (x *AppendResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *AppendResponse) GetLastIndex() int64 {
+	if x != nil {
+		return x.LastIndex
+	}
+	return 0
+}
+
+type LeaderRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Term         int64  `protobuf:"varint,1,opt,name=term,proto3" json:"term,omitempty"`
+	CandidateId  string `protobuf:"bytes,2,opt,name=candidateId,proto3" json:"candidateId,omitempty"`
+	LastLogIndex int64  `protobuf:"varint,3,opt,name=lastLogIndex,proto3" json:"lastLogIndex,omitempty"`
+	LastLogTerm  int64  `protobuf:"varint,4,opt,name=lastLogTerm,proto3" json:"lastLogTerm,omitempty"`
+}
+
+func (x *LeaderRequest) Reset() {
+	*x = LeaderRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_definitions_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LeaderRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LeaderRequest) ProtoMessage() {}
+
+func (x *LeaderRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_definitions_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LeaderRequest.ProtoReflect.Descriptor instead.
+func (*LeaderRequest) Descriptor() ([]byte, []int) {
+	return file_proto_definitions_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *LeaderRequest) GetTerm() int64 {
+	if x != nil {
+		return x.Term
+	}
+	return 0
+}
+
+func (x *LeaderRequest) GetCandidateId() string {
+	if x != nil {
+		return x.CandidateId
+	}
+	return ""
+}
+
+func (x *LeaderRequest) GetLastLogIndex() int64 {
+	if x != nil {
+		return x.LastLogIndex
+	}
+	return 0
+}
+
+func (x *LeaderRequest) GetLastLogTerm() int64 {
+	if x != nil {
+		return x.LastLogTerm
+	}
+	return 0
+}
+
+type LeaderResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Term        int64 `protobuf:"varint,1,opt,name=term,proto3" json:"term,omitempty"`
+	VoteGranted bool  `protobuf:"varint,2,opt,name=voteGranted,proto3" json:"voteGranted,omitempty"`
+}
+
+func (x *LeaderResponse) Reset() {
+	*x = LeaderResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_definitions_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LeaderResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LeaderResponse) ProtoMessage() {}
+
+func (x *LeaderResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_definitions_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LeaderResponse.ProtoReflect.Descriptor instead.
+func (*LeaderResponse) Descriptor() ([]byte, []int) {
+	return file_proto_definitions_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *LeaderResponse) GetTerm() int64 {
+	if x != nil {
+		return x.Term
+	}
+	return 0
+}
+
+func (x *LeaderResponse) GetVoteGranted() bool {
+	if x != nil {
+		return x.VoteGranted
+	}
+	return false
+}
+
 type PaxosConsensusInstance struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -388,7 +672,7 @@ type PaxosConsensusInstance struct {
 func (x *PaxosConsensusInstance) Reset() {
 	*x = PaxosConsensusInstance{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_definitions_proto_msgTypes[5]
+		mi := &file_proto_definitions_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -401,7 +685,7 @@ func (x *PaxosConsensusInstance) String() string {
 func (*PaxosConsensusInstance) ProtoMessage() {}
 
 func (x *PaxosConsensusInstance) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_definitions_proto_msgTypes[5]
+	mi := &file_proto_definitions_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -436,6 +720,61 @@ func (x *PaxosConsensusInstance) GetValue() *ReplicaBatch {
 		return x.Value
 	}
 	return nil
+}
+
+type AppendRequestEntry struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Value *ReplicaBatch `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	Term  int64         `protobuf:"varint,2,opt,name=term,proto3" json:"term,omitempty"`
+}
+
+func (x *AppendRequestEntry) Reset() {
+	*x = AppendRequestEntry{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_definitions_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AppendRequestEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppendRequestEntry) ProtoMessage() {}
+
+func (x *AppendRequestEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_definitions_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppendRequestEntry.ProtoReflect.Descriptor instead.
+func (*AppendRequestEntry) Descriptor() ([]byte, []int) {
+	return file_proto_definitions_proto_rawDescGZIP(), []int{5, 0}
+}
+
+func (x *AppendRequestEntry) GetValue() *ReplicaBatch {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+func (x *AppendRequestEntry) GetTerm() int64 {
+	if x != nil {
+		return x.Term
+	}
+	return 0
 }
 
 var File_proto_definitions_proto protoreflect.FileDescriptor
@@ -493,8 +832,54 @@ var file_proto_definitions_proto_rawDesc = []byte{
 	0x62, 0x61, 0x6c, 0x6c, 0x6f, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x62, 0x61,
 	0x6c, 0x6c, 0x6f, 0x74, 0x12, 0x23, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x03, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x52, 0x65, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x42, 0x61, 0x74,
-	0x63, 0x68, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x42, 0x08, 0x5a, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x2f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x63, 0x68, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0xbf, 0x02, 0x0a, 0x0d, 0x41, 0x70,
+	0x70, 0x65, 0x6e, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x74,
+	0x65, 0x72, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x74, 0x65, 0x72, 0x6d, 0x12,
+	0x1a, 0x0a, 0x08, 0x6c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x49, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x08, 0x6c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x49, 0x64, 0x12, 0x22, 0x0a, 0x0c, 0x70,
+	0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x03, 0x52, 0x0c, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12,
+	0x20, 0x0a, 0x0b, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x54, 0x65, 0x72, 0x6d, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x03, 0x52, 0x0b, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x54, 0x65, 0x72,
+	0x6d, 0x12, 0x22, 0x0a, 0x0c, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x56, 0x61, 0x6c, 0x75,
+	0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67,
+	0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x2e, 0x0a, 0x07, 0x65, 0x6e, 0x74, 0x72, 0x69, 0x65, 0x73,
+	0x18, 0x06, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x41, 0x70, 0x70, 0x65, 0x6e, 0x64, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x65, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x07, 0x65, 0x6e,
+	0x74, 0x72, 0x69, 0x65, 0x73, 0x12, 0x22, 0x0a, 0x0c, 0x6c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x43,
+	0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x18, 0x07, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0c, 0x6c, 0x65, 0x61,
+	0x64, 0x65, 0x72, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x1a, 0x40, 0x0a, 0x05, 0x65, 0x6e, 0x74,
+	0x72, 0x79, 0x12, 0x23, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x0d, 0x2e, 0x52, 0x65, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x42, 0x61, 0x74, 0x63, 0x68,
+	0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x65, 0x72, 0x6d, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x74, 0x65, 0x72, 0x6d, 0x22, 0x5c, 0x0a, 0x0e, 0x41,
+	0x70, 0x70, 0x65, 0x6e, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a,
+	0x04, 0x74, 0x65, 0x72, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x74, 0x65, 0x72,
+	0x6d, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x08, 0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x12, 0x1c, 0x0a, 0x09, 0x6c,
+	0x61, 0x73, 0x74, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09,
+	0x6c, 0x61, 0x73, 0x74, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x22, 0x8b, 0x01, 0x0a, 0x0d, 0x4c, 0x65,
+	0x61, 0x64, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x74,
+	0x65, 0x72, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x74, 0x65, 0x72, 0x6d, 0x12,
+	0x20, 0x0a, 0x0b, 0x63, 0x61, 0x6e, 0x64, 0x69, 0x64, 0x61, 0x74, 0x65, 0x49, 0x64, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x63, 0x61, 0x6e, 0x64, 0x69, 0x64, 0x61, 0x74, 0x65, 0x49,
+	0x64, 0x12, 0x22, 0x0a, 0x0c, 0x6c, 0x61, 0x73, 0x74, 0x4c, 0x6f, 0x67, 0x49, 0x6e, 0x64, 0x65,
+	0x78, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0c, 0x6c, 0x61, 0x73, 0x74, 0x4c, 0x6f, 0x67,
+	0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x20, 0x0a, 0x0b, 0x6c, 0x61, 0x73, 0x74, 0x4c, 0x6f, 0x67,
+	0x54, 0x65, 0x72, 0x6d, 0x18, 0x04, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0b, 0x6c, 0x61, 0x73, 0x74,
+	0x4c, 0x6f, 0x67, 0x54, 0x65, 0x72, 0x6d, 0x22, 0x46, 0x0a, 0x0e, 0x4c, 0x65, 0x61, 0x64, 0x65,
+	0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x65, 0x72,
+	0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x74, 0x65, 0x72, 0x6d, 0x12, 0x20, 0x0a,
+	0x0b, 0x76, 0x6f, 0x74, 0x65, 0x47, 0x72, 0x61, 0x6e, 0x74, 0x65, 0x64, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x08, 0x52, 0x0b, 0x76, 0x6f, 0x74, 0x65, 0x47, 0x72, 0x61, 0x6e, 0x74, 0x65, 0x64, 0x32,
+	0x6d, 0x0a, 0x09, 0x43, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x12, 0x30, 0x0a, 0x0d,
+	0x41, 0x70, 0x70, 0x65, 0x6e, 0x64, 0x45, 0x6e, 0x74, 0x72, 0x69, 0x65, 0x73, 0x12, 0x0e, 0x2e,
+	0x41, 0x70, 0x70, 0x65, 0x6e, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0f, 0x2e,
+	0x41, 0x70, 0x70, 0x65, 0x6e, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2e,
+	0x0a, 0x0b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x56, 0x6f, 0x74, 0x65, 0x12, 0x0e, 0x2e,
+	0x4c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0f, 0x2e,
+	0x4c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x08,
+	0x5a, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -509,27 +894,38 @@ func file_proto_definitions_proto_rawDescGZIP() []byte {
 	return file_proto_definitions_proto_rawDescData
 }
 
-var file_proto_definitions_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_definitions_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_definitions_proto_goTypes = []interface{}{
 	(*SingleOperation)(nil),        // 0: SingleOperation
 	(*ClientBatch)(nil),            // 1: ClientBatch
 	(*ReplicaBatch)(nil),           // 2: ReplicaBatch
 	(*Status)(nil),                 // 3: Status
 	(*PaxosConsensus)(nil),         // 4: PaxosConsensus
-	(*PaxosConsensusInstance)(nil), // 5: PaxosConsensus.instance
+	(*AppendRequest)(nil),          // 5: AppendRequest
+	(*AppendResponse)(nil),         // 6: AppendResponse
+	(*LeaderRequest)(nil),          // 7: LeaderRequest
+	(*LeaderResponse)(nil),         // 8: LeaderResponse
+	(*PaxosConsensusInstance)(nil), // 9: PaxosConsensus.instance
+	(*AppendRequestEntry)(nil),     // 10: AppendRequest.entry
 }
 var file_proto_definitions_proto_depIdxs = []int32{
-	0, // 0: ClientBatch.requests:type_name -> SingleOperation
-	1, // 1: ReplicaBatch.requests:type_name -> ClientBatch
-	5, // 2: PaxosConsensus.promiseReply:type_name -> PaxosConsensus.instance
-	2, // 3: PaxosConsensus.propose_value:type_name -> ReplicaBatch
-	5, // 4: PaxosConsensus.decided_values:type_name -> PaxosConsensus.instance
-	2, // 5: PaxosConsensus.instance.value:type_name -> ReplicaBatch
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	0,  // 0: ClientBatch.requests:type_name -> SingleOperation
+	1,  // 1: ReplicaBatch.requests:type_name -> ClientBatch
+	9,  // 2: PaxosConsensus.promiseReply:type_name -> PaxosConsensus.instance
+	2,  // 3: PaxosConsensus.propose_value:type_name -> ReplicaBatch
+	9,  // 4: PaxosConsensus.decided_values:type_name -> PaxosConsensus.instance
+	10, // 5: AppendRequest.entries:type_name -> AppendRequest.entry
+	2,  // 6: PaxosConsensus.instance.value:type_name -> ReplicaBatch
+	2,  // 7: AppendRequest.entry.value:type_name -> ReplicaBatch
+	5,  // 8: Consensus.AppendEntries:input_type -> AppendRequest
+	7,  // 9: Consensus.RequestVote:input_type -> LeaderRequest
+	6,  // 10: Consensus.AppendEntries:output_type -> AppendResponse
+	8,  // 11: Consensus.RequestVote:output_type -> LeaderResponse
+	10, // [10:12] is the sub-list for method output_type
+	8,  // [8:10] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_proto_definitions_proto_init() }
@@ -599,7 +995,67 @@ func file_proto_definitions_proto_init() {
 			}
 		}
 		file_proto_definitions_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AppendRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_definitions_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AppendResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_definitions_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*LeaderRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_definitions_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*LeaderResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_definitions_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PaxosConsensusInstance); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_definitions_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AppendRequestEntry); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -617,9 +1073,9 @@ func file_proto_definitions_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_proto_definitions_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   11,
 			NumExtensions: 0,
-			NumServices:   0,
+			NumServices:   1,
 		},
 		GoTypes:           file_proto_definitions_proto_goTypes,
 		DependencyIndexes: file_proto_definitions_proto_depIdxs,
