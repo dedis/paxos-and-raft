@@ -375,133 +375,6 @@ func (x *PaxosConsensus) GetDecidedValues() []*PaxosConsensusInstance {
 	return nil
 }
 
-type RaftConsensus struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Sender        int32                 `protobuf:"varint,1,opt,name=sender,proto3" json:"sender,omitempty"` // leader id for append request, candidate id for leader request
-	Receiver      int32                 `protobuf:"varint,2,opt,name=receiver,proto3" json:"receiver,omitempty"`
-	Type          int32                 `protobuf:"varint,3,opt,name=type,proto3" json:"type,omitempty"` // 1-append request, 2-append response, 3-leader request, 4-leader response, 5 internal timeout
-	Note          string                `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
-	Term          int64                 `protobuf:"varint,5,opt,name=term,proto3" json:"term,omitempty"`                  // for append entry, append response, leader request, leader response
-	PrevLogIndex  int64                 `protobuf:"varint,6,opt,name=prevLogIndex,proto3" json:"prevLogIndex,omitempty"`  // for append request the prevLogIndex, for append Response the prevLogIndex of the append request in case of failure, last log index for leader request
-	PrevLogTerm   int64                 `protobuf:"varint,7,opt,name=prevLogTerm,proto3" json:"prevLogTerm,omitempty"`    // for append request the prev log term, for leader request the last log term
-	PrevLogValues string                `protobuf:"bytes,8,opt,name=prevLogValues,proto3" json:"prevLogValues,omitempty"` // for append request
-	Entries       []*RaftConsensusEntry `protobuf:"bytes,9,rep,name=entries,proto3" json:"entries,omitempty"`             // for append request
-	LeaderCommit  int64                 `protobuf:"varint,10,opt,name=leaderCommit,proto3" json:"leaderCommit,omitempty"` // for append request
-	Success       bool                  `protobuf:"varint,11,opt,name=success,proto3" json:"success,omitempty"`           // for append response, for vote granted in leader response
-}
-
-func (x *RaftConsensus) Reset() {
-	*x = RaftConsensus{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_definitions_proto_msgTypes[5]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *RaftConsensus) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RaftConsensus) ProtoMessage() {}
-
-func (x *RaftConsensus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_definitions_proto_msgTypes[5]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RaftConsensus.ProtoReflect.Descriptor instead.
-func (*RaftConsensus) Descriptor() ([]byte, []int) {
-	return file_proto_definitions_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *RaftConsensus) GetSender() int32 {
-	if x != nil {
-		return x.Sender
-	}
-	return 0
-}
-
-func (x *RaftConsensus) GetReceiver() int32 {
-	if x != nil {
-		return x.Receiver
-	}
-	return 0
-}
-
-func (x *RaftConsensus) GetType() int32 {
-	if x != nil {
-		return x.Type
-	}
-	return 0
-}
-
-func (x *RaftConsensus) GetNote() string {
-	if x != nil {
-		return x.Note
-	}
-	return ""
-}
-
-func (x *RaftConsensus) GetTerm() int64 {
-	if x != nil {
-		return x.Term
-	}
-	return 0
-}
-
-func (x *RaftConsensus) GetPrevLogIndex() int64 {
-	if x != nil {
-		return x.PrevLogIndex
-	}
-	return 0
-}
-
-func (x *RaftConsensus) GetPrevLogTerm() int64 {
-	if x != nil {
-		return x.PrevLogTerm
-	}
-	return 0
-}
-
-func (x *RaftConsensus) GetPrevLogValues() string {
-	if x != nil {
-		return x.PrevLogValues
-	}
-	return ""
-}
-
-func (x *RaftConsensus) GetEntries() []*RaftConsensusEntry {
-	if x != nil {
-		return x.Entries
-	}
-	return nil
-}
-
-func (x *RaftConsensus) GetLeaderCommit() int64 {
-	if x != nil {
-		return x.LeaderCommit
-	}
-	return 0
-}
-
-func (x *RaftConsensus) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
 type PaxosConsensusInstance struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -515,7 +388,7 @@ type PaxosConsensusInstance struct {
 func (x *PaxosConsensusInstance) Reset() {
 	*x = PaxosConsensusInstance{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_definitions_proto_msgTypes[6]
+		mi := &file_proto_definitions_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -528,7 +401,7 @@ func (x *PaxosConsensusInstance) String() string {
 func (*PaxosConsensusInstance) ProtoMessage() {}
 
 func (x *PaxosConsensusInstance) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_definitions_proto_msgTypes[6]
+	mi := &file_proto_definitions_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -563,61 +436,6 @@ func (x *PaxosConsensusInstance) GetValue() *ReplicaBatch {
 		return x.Value
 	}
 	return nil
-}
-
-type RaftConsensusEntry struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Value *ReplicaBatch `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
-	Term  int64         `protobuf:"varint,2,opt,name=term,proto3" json:"term,omitempty"`
-}
-
-func (x *RaftConsensusEntry) Reset() {
-	*x = RaftConsensusEntry{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_definitions_proto_msgTypes[7]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *RaftConsensusEntry) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RaftConsensusEntry) ProtoMessage() {}
-
-func (x *RaftConsensusEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_definitions_proto_msgTypes[7]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RaftConsensusEntry.ProtoReflect.Descriptor instead.
-func (*RaftConsensusEntry) Descriptor() ([]byte, []int) {
-	return file_proto_definitions_proto_rawDescGZIP(), []int{5, 0}
-}
-
-func (x *RaftConsensusEntry) GetValue() *ReplicaBatch {
-	if x != nil {
-		return x.Value
-	}
-	return nil
-}
-
-func (x *RaftConsensusEntry) GetTerm() int64 {
-	if x != nil {
-		return x.Term
-	}
-	return 0
 }
 
 var File_proto_definitions_proto protoreflect.FileDescriptor
@@ -675,34 +493,8 @@ var file_proto_definitions_proto_rawDesc = []byte{
 	0x62, 0x61, 0x6c, 0x6c, 0x6f, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x62, 0x61,
 	0x6c, 0x6c, 0x6f, 0x74, 0x12, 0x23, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x03, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x52, 0x65, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x42, 0x61, 0x74,
-	0x63, 0x68, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x9b, 0x03, 0x0a, 0x0d, 0x52, 0x61,
-	0x66, 0x74, 0x43, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x73,
-	0x65, 0x6e, 0x64, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x73, 0x65, 0x6e,
-	0x64, 0x65, 0x72, 0x12, 0x1a, 0x0a, 0x08, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x08, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x12,
-	0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x74,
-	0x79, 0x70, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x6f, 0x74, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x04, 0x6e, 0x6f, 0x74, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x65, 0x72, 0x6d, 0x18,
-	0x05, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x74, 0x65, 0x72, 0x6d, 0x12, 0x22, 0x0a, 0x0c, 0x70,
-	0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x18, 0x06, 0x20, 0x01, 0x28,
-	0x03, 0x52, 0x0c, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12,
-	0x20, 0x0a, 0x0b, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x54, 0x65, 0x72, 0x6d, 0x18, 0x07,
-	0x20, 0x01, 0x28, 0x03, 0x52, 0x0b, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x54, 0x65, 0x72,
-	0x6d, 0x12, 0x24, 0x0a, 0x0d, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f, 0x67, 0x56, 0x61, 0x6c, 0x75,
-	0x65, 0x73, 0x18, 0x08, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x70, 0x72, 0x65, 0x76, 0x4c, 0x6f,
-	0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x12, 0x2e, 0x0a, 0x07, 0x65, 0x6e, 0x74, 0x72, 0x69,
-	0x65, 0x73, 0x18, 0x09, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x52, 0x61, 0x66, 0x74, 0x43,
-	0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x65, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x07,
-	0x65, 0x6e, 0x74, 0x72, 0x69, 0x65, 0x73, 0x12, 0x22, 0x0a, 0x0c, 0x6c, 0x65, 0x61, 0x64, 0x65,
-	0x72, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0c, 0x6c,
-	0x65, 0x61, 0x64, 0x65, 0x72, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x73,
-	0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x73, 0x75,
-	0x63, 0x63, 0x65, 0x73, 0x73, 0x1a, 0x40, 0x0a, 0x05, 0x65, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x23,
-	0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e,
-	0x52, 0x65, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x05, 0x76, 0x61,
-	0x6c, 0x75, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x65, 0x72, 0x6d, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x03, 0x52, 0x04, 0x74, 0x65, 0x72, 0x6d, 0x42, 0x08, 0x5a, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x2f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x63, 0x68, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x42, 0x08, 0x5a, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x2f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -717,31 +509,27 @@ func file_proto_definitions_proto_rawDescGZIP() []byte {
 	return file_proto_definitions_proto_rawDescData
 }
 
-var file_proto_definitions_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_definitions_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_definitions_proto_goTypes = []interface{}{
 	(*SingleOperation)(nil),        // 0: SingleOperation
 	(*ClientBatch)(nil),            // 1: ClientBatch
 	(*ReplicaBatch)(nil),           // 2: ReplicaBatch
 	(*Status)(nil),                 // 3: Status
 	(*PaxosConsensus)(nil),         // 4: PaxosConsensus
-	(*RaftConsensus)(nil),          // 5: RaftConsensus
-	(*PaxosConsensusInstance)(nil), // 6: PaxosConsensus.instance
-	(*RaftConsensusEntry)(nil),     // 7: RaftConsensus.entry
+	(*PaxosConsensusInstance)(nil), // 5: PaxosConsensus.instance
 }
 var file_proto_definitions_proto_depIdxs = []int32{
 	0, // 0: ClientBatch.requests:type_name -> SingleOperation
 	1, // 1: ReplicaBatch.requests:type_name -> ClientBatch
-	6, // 2: PaxosConsensus.promiseReply:type_name -> PaxosConsensus.instance
+	5, // 2: PaxosConsensus.promiseReply:type_name -> PaxosConsensus.instance
 	2, // 3: PaxosConsensus.propose_value:type_name -> ReplicaBatch
-	6, // 4: PaxosConsensus.decided_values:type_name -> PaxosConsensus.instance
-	7, // 5: RaftConsensus.entries:type_name -> RaftConsensus.entry
-	2, // 6: PaxosConsensus.instance.value:type_name -> ReplicaBatch
-	2, // 7: RaftConsensus.entry.value:type_name -> ReplicaBatch
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	5, // 4: PaxosConsensus.decided_values:type_name -> PaxosConsensus.instance
+	2, // 5: PaxosConsensus.instance.value:type_name -> ReplicaBatch
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_definitions_proto_init() }
@@ -811,31 +599,7 @@ func file_proto_definitions_proto_init() {
 			}
 		}
 		file_proto_definitions_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RaftConsensus); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_proto_definitions_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PaxosConsensusInstance); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_proto_definitions_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RaftConsensusEntry); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -853,7 +617,7 @@ func file_proto_definitions_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_proto_definitions_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

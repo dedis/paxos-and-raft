@@ -50,7 +50,6 @@ type Replica struct {
 	serverStarted bool // to bootstrap
 
 	paxosConsensus *Paxos // Paxos consensus data structs
-	raftConsensus  *Raft  // Raft consensus data structs
 
 	consensusStarted bool
 	viewTimeout      int // view change timeout in micro seconds
@@ -115,7 +114,6 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 	}
 
 	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers), name, &rp, pipelineLength)
-	rp.raftConsensus = InitRaftConsensus(len(cfg.Peers), name, &rp, pipelineLength)
 
 	rp.debug("Created a new replica instance", 0)
 
@@ -139,7 +137,6 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 	rp.RegisterRPC(new(proto.ClientBatch), rp.messageCodes.ClientBatchRpc)
 	rp.RegisterRPC(new(proto.Status), rp.messageCodes.StatusRPC)
 	rp.RegisterRPC(new(proto.PaxosConsensus), rp.messageCodes.PaxosConsensus)
-	rp.RegisterRPC(new(proto.RaftConsensus), rp.messageCodes.RaftConsensus)
 
 	rp.debug("Registered RPCs in the table", 0)
 

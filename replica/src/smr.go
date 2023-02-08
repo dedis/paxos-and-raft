@@ -25,20 +25,6 @@ func (rp *Replica) handleClientBatch(batch *proto.ClientBatch) {
 			rp.paxosConsensus.lastProposedTime = time.Now()
 		}
 	}
-	if rp.consAlgo == "raft" {
-		if time.Now().Sub(rp.raftConsensus.lastProposedTime).Microseconds() > int64(rp.replicaBatchTime) || len(rp.incomingRequests) >= rp.replicaBatchSize {
-			var proposals []*proto.ClientBatch
-			if len(rp.incomingRequests) > rp.replicaBatchSize {
-				proposals = rp.incomingRequests[:rp.replicaBatchSize]
-				rp.incomingRequests = rp.incomingRequests[rp.replicaBatchSize:]
-			} else {
-				proposals = rp.incomingRequests
-				rp.incomingRequests = make([]*proto.ClientBatch, 0)
-			}
-			rp.appendEntries(proposals)
-			rp.raftConsensus.lastProposedTime = time.Now()
-		}
-	}
 
 }
 
