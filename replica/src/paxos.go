@@ -47,7 +47,6 @@ type Paxos struct {
 	viewTimer             *common.TimerWithCancel
 	startTime             time.Time                         // time when the consensus was started
 	lastCommittedTime     time.Time                         // time when the last consensus instance was committed
-	lastProposedTime      time.Time                         // time when last proposed
 	nextFreeInstance      int                               // log position that needs to be created next in the replicated log
 	state                 string                            // can be A (acceptor), L (leader), C (contestant)
 	promiseResponses      map[int32][]*proto.PaxosConsensus // for each view the set of received promise messages
@@ -104,7 +103,6 @@ func InitPaxosConsensus(numReplicas int, name int32, replica *Replica, pipelineL
 		viewTimer:             nil,
 		startTime:             time.Time{},
 		lastCommittedTime:     time.Time{},
-		lastProposedTime:      time.Time{},
 		nextFreeInstance:      100,
 		state:                 "A",
 		promiseResponses:      make(map[int32][]*proto.PaxosConsensus),
@@ -119,7 +117,6 @@ func InitPaxosConsensus(numReplicas int, name int32, replica *Replica, pipelineL
 func (p *Paxos) run() {
 	p.startTime = time.Now()
 	p.lastCommittedTime = time.Now()
-	p.lastProposedTime = time.Now()
 	initLeader := int32(2)
 
 	if p.name == initLeader {

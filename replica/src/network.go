@@ -142,32 +142,38 @@ func (rp *Replica) WaitForConnections() {
 func (rp *Replica) Run() {
 
 	for true {
+		select {
+		case replicaMessage := <-rp.incomingChan:
 
-		rp.debug("Checking channel..", 0)
-		replicaMessage := <-rp.incomingChan
-		rp.debug("Received replica message", 0)
+			rp.debug("Received replica message", 0)
 
-		switch replicaMessage.Code {
+			switch replicaMessage.Code {
 
-		case rp.messageCodes.StatusRPC:
-			statusMessage := replicaMessage.Obj.(*proto.Status)
-			rp.debug("Status message from "+fmt.Sprintf("%#v", statusMessage.Sender), 0)
-			rp.handleStatus(statusMessage)
-			break
+			case rp.messageCodes.StatusRPC:
+				statusMessage := replicaMessage.Obj.(*proto.Status)
+				rp.debug("Status message from "+fmt.Sprintf("%#v", statusMessage.Sender), 0)
+				rp.handleStatus(statusMessage)
+				break
 
-		case rp.messageCodes.ClientBatchRpc:
-			clientBatch := replicaMessage.Obj.(*proto.ClientBatch)
-			rp.debug("Client batch message from "+fmt.Sprintf("%#v", clientBatch.Sender), 0)
-			rp.handleClientBatch(clientBatch)
-			break
+			case rp.messageCodes.ClientBatchRpc:
+				clientBatch := replicaMessage.Obj.(*proto.ClientBatch)
+				rp.debug("Client batch message from "+fmt.Sprintf("%#v", clientBatch.Sender), 0)
+				rp.handleClientBatch(clientBatch)
+				break
 
-		case rp.messageCodes.PaxosConsensus:
-			paxosConsensusMessage := replicaMessage.Obj.(*proto.PaxosConsensus)
-			rp.debug("Paxos consensus message from "+fmt.Sprintf("%#v", paxosConsensusMessage.Sender), 0)
-			rp.handlePaxosConsensus(paxosConsensusMessage)
-			break
+			case rp.messageCodes.PaxosConsensus:
+				paxosConsensusMessage := replicaMessage.Obj.(*proto.PaxosConsensus)
+				rp.debug("Paxos consensus message from "+fmt.Sprintf("%#v", paxosConsensusMessage.Sender), 0)
+				rp.handlePaxosConsensus(paxosConsensusMessage)
+				break
 
+			}
+		case clientRespBatches := <-rp.requestsOut:
+			rp.sendClientResponses(clientRespBatches)
+		default:
+			// message dropped
 		}
+
 	}
 }
 

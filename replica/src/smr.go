@@ -11,19 +11,27 @@ import (
 
 func (rp *Replica) handleClientBatch(batch *proto.ClientBatch) {
 	rp.incomingRequests = append(rp.incomingRequests, batch)
-	if rp.consAlgo == "paxos" {
-		if time.Now().Sub(rp.paxosConsensus.lastProposedTime).Microseconds() > int64(rp.replicaBatchTime) || len(rp.incomingRequests) >= rp.replicaBatchSize {
-			var proposals []*proto.ClientBatch
-			if len(rp.incomingRequests) > rp.replicaBatchSize {
-				proposals = rp.incomingRequests[:rp.replicaBatchSize]
-				rp.incomingRequests = rp.incomingRequests[rp.replicaBatchSize:]
-			} else {
-				proposals = rp.incomingRequests
-				rp.incomingRequests = make([]*proto.ClientBatch, 0)
-			}
-			rp.sendPropose(proposals)
-			rp.paxosConsensus.lastProposedTime = time.Now()
+
+	if time.Now().Sub(rp.lastProposedTime).Microseconds() > int64(rp.replicaBatchTime) || len(rp.incomingRequests) >= rp.replicaBatchSize {
+		var proposals []*proto.ClientBatch
+		if len(rp.incomingRequests) > rp.replicaBatchSize {
+			proposals = rp.incomingRequests[:rp.replicaBatchSize]
+			rp.incomingRequests = rp.incomingRequests[rp.replicaBatchSize:]
+		} else {
+			proposals = rp.incomingRequests
+			rp.incomingRequests = make([]*proto.ClientBatch, 0)
 		}
+		if rp.consAlgo == "paxos" {
+			rp.sendPropose(proposals)
+		} else if rp.consAlgo == "raft" {
+			select {
+			case rp.raftConsensus.requestsIn <- proposals:
+				// message sent
+			default:
+				// message dropped
+			}
+		}
+		rp.lastProposedTime = time.Now()
 	}
 
 }

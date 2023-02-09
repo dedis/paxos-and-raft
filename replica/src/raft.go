@@ -7,93 +7,116 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"paxos_raft/configuration"
+	"paxos_raft/proto"
+	"strconv"
 	"sync"
 	"time"
 )
 
-func (in *Instance) mustEmbedUnimplementedConsensusServer() {
+// for gRPC backward compatibility
+
+func (in *Raft) mustEmbedUnimplementedConsensusServer() {
 	panic("implement me")
 }
 
-type Instance struct {
-	nodeId     string
+// a single raft entry content
+
+type entry struct {
+	id       int64
+	term     int64
+	commands proto.ReplicaBatch
+	decided  bool
+}
+
+type Raft struct {
+	id         int32
+	cfg        configuration.InstanceConfig
 	debugOn    bool
 	debugLevel int
-	id         int32
-	server     *grpc.Server // gRPC server
-	listener   net.Listener // socket for gRPC connections
-	address    string       // address to listen for gRPC connections
-	peers      []peer
-	numNodes   int64
-	timeout    time.Duration
 
-	log          []entry
-	centralMutex sync.Mutex
+	server   *grpc.Server // gRPC server
+	listener net.Listener // socket for gRPC connections
+	address  string       // address to listen for gRPC connections
+	peers    []peer
 
-	commitIndex int64
+	centralMutex *sync.Mutex
+	numNodes     int64
 
+	currentTerm    int64
+	votedFor       map[int32]int32
+	log            []entry
+	commitIndex    int64
 	nextFreeChoice int64
 
-	votedFor    string
-	currentTerm int64
-
-	leaderTimeOut       int64 //constant
-	halfLeaderTimeOut   int64 //constant
-	leaderTimeoutMethod int
+	viewTimeOut int64 //constant
 
 	logFilePath string
 
 	lastSeenTimeLeader time.Time
 
-	startedTimer bool
-
 	state string
 
-	serviceTime int64
+	requestsIn  chan []*proto.ClientBatch
+	requestsOut chan []*proto.ClientBatch
 
-	responseSize   int64
-	responseString string
+	proposalCounter int
 
-	batchSize   int64
-	requestsIn  chan request
-	requestsOut chan bool
-
-	startedProposer bool
-	batchTime       int64
+	replica *Replica
 }
 
-type request struct {
-	id    string
-	value string
+func NewRaft(id int32, cfg configuration.InstanceConfig, debugOn bool, debugLevel int, address string, numNodes int64, viewTimeOut int64, logFilePath string, requestsIn chan []*proto.ClientBatch, requestsOut chan []*proto.ClientBatch, replica *Replica) *Raft {
+
+	return &Raft{
+		id:           id,
+		cfg:          cfg,
+		debugOn:      debugOn,
+		debugLevel:   debugLevel,
+		server:       nil,
+		listener:     nil,
+		address:      address,
+		peers:        nil,
+		centralMutex: &sync.Mutex{},
+		numNodes:     numNodes,
+		currentTerm:  1,
+		votedFor:     make(map[int32]int32),
+		log: []entry{{
+			id:   0,
+			term: 1,
+			commands: proto.ReplicaBatch{
+				UniqueId: "nil",
+				Requests: []*proto.ClientBatch{&proto.ClientBatch{
+					UniqueId: "nil",
+					Requests: make([]*proto.SingleOperation, 0),
+					Sender:   -1,
+				}},
+				Sender: 0,
+			},
+			decided: true,
+		}},
+		commitIndex:        0,
+		nextFreeChoice:     1,
+		viewTimeOut:        viewTimeOut,
+		logFilePath:        logFilePath,
+		lastSeenTimeLeader: time.Time{},
+		state:              "F",
+		requestsIn:         requestsIn,
+		requestsOut:        requestsOut,
+		proposalCounter:    1,
+		replica:            replica,
+	}
 }
 
-type entry struct {
-	id       int64
-	term     int64
-	commands []request
-
-	decided   bool
-	decisions []request // can be ommited
-}
+// a grpc peer
 
 type peer struct {
-	name   string
+	name   int32
 	client ConsensusClient
-}
-
-/*
-	if turned on, prints the message to console
-*/
-
-func (in *Instance) debug(message string, level int) {
-	if in.debugOn && level >= in.debugLevel {
-		fmt.Printf("%s\n", message)
-	}
 }
 
 // start listening to gRPC connection
 
-func (in *Instance) NetworkInit() {
+func (in *Raft) NetworkInit() {
 	in.server = grpc.NewServer()
 	RegisterConsensusServer(in.server, in)
 
@@ -113,7 +136,58 @@ func (in *Instance) NetworkInit() {
 	in.debug("started listening to grpc  ", 1)
 }
 
-func (in *Instance) createNChoices(number int64) {
+// setup gRPC clients to all replicas and return the connection pointers
+
+func (in *Raft) SetupgRPC() {
+	peers := make([]peer, 0)
+	for _, peeri := range in.cfg.Peers {
+		conn, err := grpc.Dial(peeri.GAddress, grpc.WithInsecure())
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "dial: %v", err)
+			os.Exit(1)
+		}
+		intName, _ := strconv.Atoi(peeri.Name)
+		newClient := NewConsensusClient(conn)
+		peers = append(peers, peer{
+			name:   int32(intName),
+			client: newClient,
+		})
+	}
+	in.peers = peers
+}
+
+/*
+	if turned on, prints the message to console
+*/
+
+func (in *Raft) debug(message string, level int) {
+	if in.debugOn && level >= in.debugLevel {
+		fmt.Printf("%s\n", message)
+	}
+}
+
+// listen to the incoming channel, make a replica batch, replica it and reply back
+
+func (in *Raft) proposeBatch() {
+
+	go func() {
+		for true {
+			requests := <-in.requestsIn
+			in.centralMutex.Lock()
+			if in.id != in.votedFor[int32(in.currentTerm)] || in.state != "L" {
+				in.centralMutex.Unlock()
+				continue
+			}
+			clientResponses := in.appendEntries(requests)
+			if clientResponses != nil {
+				in.requestsOut <- clientResponses
+			}
+			in.centralMutex.Unlock()
+		}
+	}()
+}
+
+func (in *Raft) createNChoices(number int64) {
 
 	for i := 0; int64(i) < number; i++ {
 
@@ -127,7 +201,9 @@ func (in *Instance) createNChoices(number int64) {
 	}
 }
 
-func (in *Instance) compareLog(lastLogIndex int64, lastLogTerm int64) bool {
+// compare the last log position with that of candidate's values
+
+func (in *Raft) compareLog(lastLogIndex int64, lastLogTerm int64) bool {
 
 	myLastLogIndex := int64(len(in.log) - 1)
 	myLastLogTerm := in.log[myLastLogIndex].term
@@ -145,12 +221,14 @@ func (in *Instance) compareLog(lastLogIndex int64, lastLogTerm int64) bool {
 	}
 }
 
-func (in *Instance) RequestVote(ctx context.Context, req *pb.LeaderRequest) (*pb.LeaderResponse, error) {
+// receiver code for leader request
+
+func (in *Raft) RequestVote(ctx context.Context, req *proto.LeaderRequest) (*proto.LeaderResponse, error) {
 
 	in.centralMutex.Lock()
 	defer in.centralMutex.Unlock()
 
-	var leaderResponse pb.LeaderResponse
+	var leaderResponse proto.LeaderResponse
 
 	in.lastSeenTimeLeader = time.Now()
 
@@ -163,8 +241,8 @@ func (in *Instance) RequestVote(ctx context.Context, req *pb.LeaderRequest) (*pb
 		result := in.compareLog(req.LastLogIndex, req.LastLogTerm)
 		if result {
 			in.currentTerm = req.Term
-			in.votedFor = req.CandidateId
-			in.state = "FOLLOWER"
+			in.votedFor[int32(in.currentTerm)] = req.CandidateId
+			in.state = "F"
 			leaderResponse.Term = req.Term
 			leaderResponse.VoteGranted = true
 
@@ -177,46 +255,16 @@ func (in *Instance) RequestVote(ctx context.Context, req *pb.LeaderRequest) (*pb
 	return &leaderResponse, nil
 }
 
-func (in *Instance) identical(values []request, requests []request) bool {
-	if len(requests) != len(values) {
-		return false
-	} else {
-		for i := 0; i < len(requests); i++ {
-			if requests[i].id != values[i].id {
-				return false
-			}
-		}
-		return true
-	}
+// receiver side of the append entries RPC
 
-}
-
-func (in *Instance) getRequestArray(protocArray []*pb.AppendRequestLogEntry) []request {
-	var returnArray []request
-	for i := 0; i < len(protocArray); i++ {
-		returnArray = append(returnArray, request{
-			id:    protocArray[i].RequestIdentifier,
-			value: protocArray[i].RequestValue,
-		})
-	}
-
-	return returnArray
-
-}
-
-func (in *Instance) AppendEntries(ctx context.Context, req *pb.AppendRequest) (*pb.AppendResponse, error) {
+func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*proto.AppendResponse, error) {
 
 	in.centralMutex.Lock()
 	defer in.centralMutex.Unlock()
 
-	if in.startedTimer == false || in.startedProposer == false {
-		fmt.Print("First send two status requests to start the timers\n")
-		os.Exit(-1)
-	}
-
 	in.lastSeenTimeLeader = time.Now()
 
-	var appendEntryResponse pb.AppendResponse
+	var appendEntryResponse proto.AppendResponse
 
 	currentTerm := in.currentTerm
 
@@ -241,15 +289,14 @@ func (in *Instance) AppendEntries(ctx context.Context, req *pb.AppendRequest) (*
 		prevLogTerm := in.log[req.PrevLogIndex].term
 		prevLogValues := in.log[req.PrevLogIndex].commands
 
-		if prevLogTerm != req.PrevLogTerm || !in.identical(prevLogValues, in.getRequestArray(req.PrevLogValues)) {
-
+		if prevLogTerm != req.PrevLogTerm || prevLogValues.UniqueId != req.PrevLogValue {
 			appendEntryResponse.Term = currentTerm
 			appendEntryResponse.Success = false
 			appendEntryResponse.LastIndex = -1
 			return &appendEntryResponse, nil
 		} else {
-			//prevLogTerm matching!!!
 
+			//prevLogTerm matching!!!
 			lenLeaderLog := req.PrevLogIndex + 1 + int64(len(req.Entries))
 
 			lenMyLog := int64(len(in.log))
@@ -262,19 +309,19 @@ func (in *Instance) AppendEntries(ctx context.Context, req *pb.AppendRequest) (*
 
 			if req.Term > currentTerm {
 				in.currentTerm = req.Term
-				in.state = "FOLLOWER"
+				in.state = "F"
 
 			} else if req.Term == currentTerm {
-				in.state = "FOLLOWER"
+				in.state = "F"
 			}
 
 			for i := int64(0); i < int64(len(req.Entries)); i++ {
 
 				in.log[req.PrevLogIndex+1+i].term = req.Entries[i].Term
-				in.log[req.PrevLogIndex+1+i].commands = in.getRequestArray(req.Entries[i].Values)
+				in.log[req.PrevLogIndex+1+i].commands = *req.Entries[i].Value
 			}
 
-			in.updateLastDecidedEntry(req.LeaderCommit)
+			in.updateRaftSMR(int(req.LeaderCommit))
 
 			appendEntryResponse.Term = req.Term
 			appendEntryResponse.Success = true
@@ -285,15 +332,10 @@ func (in *Instance) AppendEntries(ctx context.Context, req *pb.AppendRequest) (*
 	}
 }
 
-func (in *Instance) requestVote() bool {
+func (in *Raft) requestVote() bool {
 
 	in.lastSeenTimeLeader = time.Now()
 	term := in.currentTerm
-
-	if in.startedTimer == false || in.startedProposer == false {
-		fmt.Print("First start the timer\n")
-		os.Exit(-1)
-	}
 
 	type response struct {
 		term        int64
@@ -301,7 +343,7 @@ func (in *Instance) requestVote() bool {
 	}
 
 	responses := make(chan *response, in.numNodes)
-	candidateId := in.nodeId
+	candidateId := in.id
 	lastLogIndex := int64(len(in.log) - 1)
 	lastLogTerm := in.log[lastLogIndex].term
 
@@ -310,14 +352,17 @@ func (in *Instance) requestVote() bool {
 		voteGranted: true,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), in.timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(10)*time.Second)
 
 	wg := sync.WaitGroup{}
 	for _, p := range in.peers {
+		if p.name == candidateId {
+			continue
+		}
 		wg.Add(1)
 		go func(p peer) {
 			defer wg.Done()
-			resp, err := p.client.RequestVote(ctx, &pb.LeaderRequest{
+			resp, err := p.client.RequestVote(ctx, &proto.LeaderRequest{
 				Term:         term,
 				CandidateId:  candidateId,
 				LastLogIndex: lastLogIndex,
@@ -329,6 +374,7 @@ func (in *Instance) requestVote() bool {
 				return
 			} else {
 				responses <- &response{term: resp.Term, voteGranted: resp.VoteGranted}
+				return
 			}
 		}(p)
 	}
@@ -359,36 +405,17 @@ func (in *Instance) requestVote() bool {
 
 		// stop counting as soon as we have a majority
 		if !canceled {
-			// cancel all in-flight proposals if we have reached a majority
-			if in.isMajority(int64(yea)) || in.isMajority(int64(nay)) {
-				//fmt.Printf("%v received majority promises, returning\n", in.nodeId)
+			if int64(yea) == in.numNodes/2+1 || int64(nay) == in.numNodes/2+1 {
 				canceled = true
 				break
 			}
 		}
 	}
 
-	return in.isMajority(int64(yea)) && !foundHigherTerm
+	return (int64(yea) == in.numNodes/2+1) && !foundHigherTerm
 }
 
-func (in *Instance) getProtocArray(reqArray []request) []*pb.AppendRequestLogEntry {
-	var PromiseResponseValues []*pb.AppendRequestLogEntry
-	for i := 0; i < len(reqArray); i++ {
-
-		PromiseResponseValues = append(PromiseResponseValues, &pb.AppendRequestLogEntry{
-			RequestIdentifier: reqArray[i].id,
-			RequestValue:      reqArray[i].value,
-		})
-	}
-	return PromiseResponseValues
-}
-
-func (in *Instance) appendEntries(values []request) bool {
-
-	if in.startedTimer == false || in.startedProposer == false {
-		fmt.Print("First start the timer\n")
-		os.Exit(-1)
-	}
+func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch {
 
 	in.lastSeenTimeLeader = time.Now()
 
@@ -396,34 +423,28 @@ func (in *Instance) appendEntries(values []request) bool {
 	var term int64
 	var prevLogIndex int64
 	var prevLogTerm int64
-	var prevLogValues []*pb.AppendRequestLogEntry
+	var prevLogValue string
 	var leaderCommit int64
-	var leaderId string
-	var entries []*pb.AppendRequestEntry
+	var leaderId int32
+	var entries []*proto.AppendRequestEntry
 
-	if len(values) > 0 {
+	in.createNChoices(1)
+	in.proposalCounter++
 
-		in.createNChoices(1)
-
-		lastIndex = int64(len(in.log)) - 1
-		term = in.currentTerm
-		in.log[lastIndex].commands = values
-		in.log[lastIndex].term = term
-		prevLogIndex = int64(len(in.log)) - 2
-		prevLogTerm = in.log[prevLogIndex].term
-		prevLogValues = in.getProtocArray(in.log[prevLogIndex].commands)
-		leaderCommit = in.commitIndex
-		leaderId = in.nodeId
-		entries = []*pb.AppendRequestEntry{{Values: in.getProtocArray(values), Term: term}}
-	} else {
-		term = in.currentTerm
-		prevLogIndex = int64(len(in.log)) - 1
-		prevLogTerm = in.log[prevLogIndex].term
-		prevLogValues = in.getProtocArray(in.log[prevLogIndex].commands)
-		leaderCommit = in.commitIndex
-		leaderId = in.nodeId
-		entries = []*pb.AppendRequestEntry{}
+	lastIndex = int64(len(in.log)) - 1
+	term = in.currentTerm
+	in.log[lastIndex].commands = proto.ReplicaBatch{
+		UniqueId: fmt.Sprintf("%v:%v", in.id, in.proposalCounter),
+		Requests: values,
+		Sender:   int64(in.id),
 	}
+	in.log[lastIndex].term = term
+	prevLogIndex = int64(len(in.log)) - 2
+	prevLogTerm = in.log[prevLogIndex].term
+	prevLogValue = in.log[prevLogIndex].commands.UniqueId
+	leaderCommit = in.commitIndex
+	leaderId = in.id
+	entries = []*proto.AppendRequestEntry{{Value: &in.log[lastIndex].commands, Term: term}}
 
 	type response struct {
 		success bool
@@ -432,34 +453,36 @@ func (in *Instance) appendEntries(values []request) bool {
 
 	responses := make(chan *response, in.numNodes-1)
 
-	ctx, cancel := context.WithTimeout(context.Background(), in.timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(10)*time.Second)
 	cancelled := false
 	wg := sync.WaitGroup{}
 	for i, p := range in.peers {
+		if p.name == in.id {
+			continue
+		}
 		wg.Add(1)
 
 		// send commit requests
-		go func(p peer, peerIndex int, termA int64, prevLogIndexA int64, prevLogTermA int64, prevLogValuesA []*pb.AppendRequestLogEntry, leaderCommitA int64,
-			leaderIdA string, entriesA []*pb.AppendRequestEntry) {
+		go func(p peer, peerIndex int, termA int64, prevLogIndexA int64, prevLogTermA int64, prevLogValueA string, leaderCommitA int64, leaderIdA int32, entriesA []*proto.AppendRequestEntry) {
 			defer wg.Done()
 
 			termLocal := termA
 			prevLogIndexLocal := prevLogIndexA
 			prevLogTermLocal := prevLogTermA
-			prevLogValuesLocal := prevLogValuesA
+			prevLogValueLocal := prevLogValueA
 			leaderCommitLocal := leaderCommitA
 			leaderIdLocal := leaderIdA
 			entriesLocal := entriesA
 
 		retry:
-			resp, err := p.client.AppendEntries(ctx, &pb.AppendRequest{
-				Term:          termLocal,
-				LeaderId:      leaderIdLocal,
-				PrevLogIndex:  prevLogIndexLocal,
-				PrevLogTerm:   prevLogTermLocal,
-				PrevLogValues: prevLogValuesLocal,
-				Entries:       entriesLocal,
-				LeaderCommit:  leaderCommitLocal,
+			resp, err := p.client.AppendEntries(ctx, &proto.AppendRequest{
+				Term:         termLocal,
+				LeaderId:     leaderIdLocal,
+				PrevLogIndex: prevLogIndexLocal,
+				PrevLogTerm:  prevLogTermLocal,
+				PrevLogValue: prevLogValueLocal,
+				Entries:      entriesLocal,
+				LeaderCommit: leaderCommitLocal,
 			})
 
 			if err != nil {
@@ -472,40 +495,19 @@ func (in *Instance) appendEntries(values []request) bool {
 				if respSuccess {
 					responses <- &response{success: true, term: respTerm}
 					return
-				}
-				if respTerm > termLocal {
+				} else if respTerm > termLocal {
 					responses <- &response{success: false, term: respTerm}
 					return
-				}
-				if !respSuccess && respTerm <= termLocal {
+				} else if !respSuccess && respTerm <= termLocal {
 					// retry
-
 					if prevLogIndexLocal >= 1 {
+						prevLogIndexLocal--
+						prevLogTermLocal = in.log[prevLogIndexLocal].term
+						prevLogValueLocal = in.log[prevLogIndexLocal].commands.UniqueId
+						prevValues := in.log[prevLogIndexLocal+1].commands
+						prevTerm := in.log[prevLogIndexLocal+1].term
+						entriesLocal = append([]*proto.AppendRequestEntry{{Value: &prevValues, Term: prevTerm}}, entriesLocal...)
 
-						if resp.LastIndex == -1 {
-
-							prevLogIndexLocal = prevLogIndexLocal - 1
-
-							prevLogTermLocal = in.log[prevLogIndexLocal].term
-							prevLogValuesLocal = in.getProtocArray(in.log[prevLogIndexLocal].commands)
-							prevValues := in.getProtocArray(in.log[prevLogIndexLocal+1].commands)
-							prevTerm := in.log[prevLogIndexLocal+1].term
-
-							entriesLocal = append([]*pb.AppendRequestEntry{{Values: prevValues, Term: prevTerm}}, entriesLocal...)
-
-						} else {
-							for prevLogIndexLocal != resp.LastIndex {
-
-								prevLogIndexLocal = prevLogIndexLocal - 1
-
-								prevLogTermLocal = in.log[prevLogIndexLocal].term
-								prevLogValuesLocal = in.getProtocArray(in.log[prevLogIndexLocal].commands)
-								prevValues := in.getProtocArray(in.log[prevLogIndexLocal+1].commands)
-								prevTerm := in.log[prevLogIndexLocal+1].term
-								entriesLocal = append([]*pb.AppendRequestEntry{{Values: prevValues, Term: prevTerm}}, entriesLocal...)
-
-							}
-						}
 					} else {
 						responses <- &response{success: false, term: respTerm}
 						return
@@ -514,7 +516,7 @@ func (in *Instance) appendEntries(values []request) bool {
 				}
 			}
 
-		}(p, i, term, prevLogIndex, prevLogTerm, prevLogValues, leaderCommit, leaderId, entries)
+		}(p, i, term, prevLogIndex, prevLogTerm, prevLogValue, leaderCommit, leaderId, entries)
 	}
 
 	// close responses channel once all responses have been received, failed, or canceled
@@ -523,6 +525,8 @@ func (in *Instance) appendEntries(values []request) bool {
 		cancel()
 		close(responses)
 	}()
+
+	var clientResponses []*proto.ClientBatch
 
 	// count the vote
 	yea, nay := 1, 0 // we just committed our own data. make it count.
@@ -539,54 +543,46 @@ func (in *Instance) appendEntries(values []request) bool {
 		}
 
 		if !cancelled {
-			// cancel all in-flight proposals if we have reached a majority
-			if in.isMajority(int64(yea)) || in.isMajority(int64(nay)) {
+			if int64(yea) == in.numNodes/2+1 || int64(nay) == in.numNodes/2+1 {
 				cancelled = true
-
-				if in.isMajority(int64(nay)) || foundHigherTerm {
-					in.state = "FOLLOWER"
-				} else if in.isMajority(int64(yea)) && len(values) > 0 {
+				if int64(nay) == in.numNodes/2+1 || foundHigherTerm {
+					in.state = "F"
+					clientResponses = nil
+				} else if int64(yea) == in.numNodes/2+1 {
 					// decide
-					lastAddedIndex := int64(len(in.log)) - 1
-					in.updateLastDecidedEntry(lastAddedIndex)
+					clientResponses = in.updateRaftSMR((len(in.log)) - 1)
 				}
-
 				break
 			}
 		}
 	}
 
-	return in.isMajority(int64(yea)) && !foundHigherTerm
+	return clientResponses
 }
 
-func (in *Instance) startViewTimeoutChecker() {
-	fmt.Printf("Starting timeout checker\n")
+// check for leader liveness
+
+func (in *Raft) startViewTimeoutChecker() {
 	go func() {
 		for {
-			time.Sleep(time.Duration(in.leaderTimeOut+int64(rand.Intn(200))) * time.Millisecond)
+			time.Sleep(time.Duration(in.viewTimeOut+int64(rand.Intn(int(in.viewTimeOut)))) * time.Microsecond)
 
 			lastSeenTimeLeader := in.lastSeenTimeLeader
 
-			if time.Now().Sub(lastSeenTimeLeader).Milliseconds() > in.leaderTimeOut {
+			if time.Now().Sub(lastSeenTimeLeader).Microseconds() > in.viewTimeOut {
 				//fmt.Printf("Leader timeout!\n")
 				in.centralMutex.Lock()
-				in.state = "CANDIDATE"
+				in.state = "C"
 				in.currentTerm++
-				in.votedFor = in.nodeId
+				in.votedFor[int32(in.currentTerm)] = in.id
 				leaderElected := in.requestVote()
 				if leaderElected {
 					//fmt.Printf("%v became the leader in %v \n\n", in.nodeId, in.currentTerm)
-					in.state = "LEADER"
+					in.state = "L"
 					in.lastSeenTimeLeader = time.Now()
 				} else {
 					//fmt.Printf("Leader election failed, Somebody else has become the leader\n")
-					in.state = "FOLLOWER"
-				}
-				if in.leaderTimeoutMethod == 1 {
-					in.leaderTimeOut = in.leaderTimeOut * 2
-					if in.leaderTimeOut > 10000 {
-						in.leaderTimeOut = 10000
-					}
+					in.state = "F"
 				}
 				in.centralMutex.Unlock()
 
@@ -597,44 +593,36 @@ func (in *Instance) startViewTimeoutChecker() {
 
 }
 
-func (in *Instance) startLeaderBoosting() {
-	//fmt.Printf("Starting leader boosting\n")
-	go func() {
-		for {
+// update smr
 
-			time.Sleep(time.Duration(in.halfLeaderTimeOut) * time.Millisecond)
-
-			lastSeenTimeLeader := in.lastSeenTimeLeader
-
-			if time.Now().Sub(lastSeenTimeLeader).Milliseconds() > in.halfLeaderTimeOut {
-				in.centralMutex.Lock()
-				currentLeader := in.votedFor
-				state := in.state
-				if in.nodeId == currentLeader && state == "LEADER" {
-					in.appendEntries([]request{})
-					in.lastSeenTimeLeader = time.Now()
-				}
-				in.centralMutex.Unlock()
-			}
-		}
-	}()
+func (in *Raft) updateRaftSMR(commitIndex int) []*proto.ClientBatch {
+	responses := make([]*proto.ClientBatch, 0)
+	for commitIndex > int(in.commitIndex) {
+		in.log[in.commitIndex+1].decided = true
+		responses = append(responses, in.replica.updateApplicationLogic(in.log[in.commitIndex+1].commands.Requests)...)
+		in.commitIndex++
+	}
+	return responses
 }
 
-func (in *Instance) updateLastDecidedEntry(lastDecidedEntry int64) {
+// print log
 
-	commitIndex := in.commitIndex
+func (rp *Replica) printRaftLogConsensus() {
+	f, err := os.Create(rp.logFilePath + strconv.Itoa(int(rp.name)) + "-consensus.txt")
+	if err != nil {
+		panic(err.Error())
+	}
+	defer f.Close()
 
-	if lastDecidedEntry > commitIndex {
-		for i := commitIndex + 1; i < lastDecidedEntry+1; i++ {
-
-			in.log[i].decided = true
-			in.log[i].decisions = in.log[i].commands
-			for j := 0; j < len(in.log[i].decisions); j++ {
-				in.app.Process(in.log[i].decisions[j].value)
-			}
-			//this should be the upcall
-			in.commitIndex++
+	for i := int64(1); i <= rp.raftConsensus.commitIndex; i++ {
+		if rp.raftConsensus.log[i].decided == false {
+			panic("should not happen")
 		}
+		for j := 0; j < len(rp.raftConsensus.log[i].commands.Requests); j++ {
+			for k := 0; k < len(rp.raftConsensus.log[i].commands.Requests[j].Requests); k++ {
+				_, _ = f.WriteString(strconv.Itoa(int(i)) + "-" + strconv.Itoa(int(j)) + "-" + strconv.Itoa(int(k)) + "-" + ":" + rp.raftConsensus.log[i].commands.Requests[j].Requests[k].Command + "\n")
 
+			}
+		}
 	}
 }

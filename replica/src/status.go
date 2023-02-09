@@ -38,12 +38,19 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 	} else if message.Type == 3 {
 		if rp.consensusStarted == false {
 			rp.consensusStarted = true
+			rp.lastProposedTime = time.Now()
+			rp.sendDummyRequests()
 			if rp.consAlgo == "paxos" {
 				rp.paxosConsensus.run()
 				rp.debug("started paxos consensus with initial prepare", 0)
+			} else if rp.consAlgo == "raft" {
+				rp.raftConsensus.NetworkInit()
+				time.Sleep(time.Duration(2) * time.Second)
+				rp.raftConsensus.SetupgRPC()
+				time.Sleep(time.Duration(2) * time.Second)
+				rp.raftConsensus.proposeBatch()
+				rp.raftConsensus.startViewTimeoutChecker()
 			}
-
-			rp.sendDummyRequests()
 		}
 	}
 

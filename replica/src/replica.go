@@ -10,6 +10,7 @@ import (
 	"paxos_raft/proto"
 	"strconv"
 	"sync"
+	"time"
 )
 
 /*
@@ -50,6 +51,7 @@ type Replica struct {
 	serverStarted bool // to bootstrap
 
 	paxosConsensus *Paxos // Paxos consensus data structs
+	raftConsensus  *Raft  // Raft consensus data structs
 
 	consensusStarted bool
 	viewTimeout      int // view change timeout in micro seconds
@@ -63,6 +65,10 @@ type Replica struct {
 
 	incomingRequests []*proto.ClientBatch
 	pipelineLength   int
+
+	lastProposedTime time.Time
+
+	requestsOut chan []*proto.ClientBatch // for raft client responses
 }
 
 const numOutgoingThreads = 100       // number of wire writers: since the I/O writing is expensive we delegate that task to a thread pool and separate from the critical path
@@ -111,6 +117,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		state:               benchmark.Init(benchmarkMode, name, keyLen, valLen),
 		incomingRequests:    make([]*proto.ClientBatch, 0),
 		pipelineLength:      pipelineLength,
+		requestsOut:         make(chan []*proto.ClientBatch, incomingBufferSize),
 	}
 
 	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers), name, &rp, pipelineLength)
