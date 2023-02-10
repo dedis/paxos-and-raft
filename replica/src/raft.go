@@ -62,12 +62,14 @@ type Raft struct {
 
 	proposalCounter int
 
-	replica *Replica
+	replica                *Replica
+	startedFailureDetector bool
 }
 
+// create a new raft instance
 func NewRaft(id int32, cfg configuration.InstanceConfig, debugOn bool, debugLevel int, address string, numNodes int64, viewTimeOut int64, logFilePath string, requestsIn chan []*proto.ClientBatch, requestsOut chan []*proto.ClientBatch, replica *Replica) *Raft {
 
-	return &Raft{
+	r := &Raft{
 		id:           id,
 		cfg:          cfg,
 		debugOn:      debugOn,
@@ -85,26 +87,33 @@ func NewRaft(id int32, cfg configuration.InstanceConfig, debugOn bool, debugLeve
 			term: 1,
 			commands: proto.ReplicaBatch{
 				UniqueId: "nil",
-				Requests: []*proto.ClientBatch{&proto.ClientBatch{
+				Requests: []*proto.ClientBatch{{
 					UniqueId: "nil",
 					Requests: make([]*proto.SingleOperation, 0),
 					Sender:   -1,
 				}},
-				Sender: 0,
+				Sender: -1,
 			},
 			decided: true,
 		}},
-		commitIndex:        0,
-		nextFreeChoice:     1,
-		viewTimeOut:        viewTimeOut,
-		logFilePath:        logFilePath,
-		lastSeenTimeLeader: time.Time{},
-		state:              "F",
-		requestsIn:         requestsIn,
-		requestsOut:        requestsOut,
-		proposalCounter:    1,
-		replica:            replica,
+		commitIndex:            0,
+		nextFreeChoice:         1,
+		viewTimeOut:            viewTimeOut,
+		logFilePath:            logFilePath,
+		lastSeenTimeLeader:     time.Time{},
+		state:                  "F",
+		requestsIn:             requestsIn,
+		requestsOut:            requestsOut,
+		proposalCounter:        1,
+		replica:                replica,
+		startedFailureDetector: false,
 	}
+
+	r.votedFor[1] = 2
+	if r.id == 2 {
+		r.state = "L"
+	}
+	return r
 }
 
 // a grpc peer
@@ -166,7 +175,7 @@ func (in *Raft) debug(message string, level int) {
 	}
 }
 
-// listen to the incoming channel, make a replica batch, replica it and reply back
+// listen to the incoming channel, make a replica batch, replicate it and reply back
 
 func (in *Raft) proposeBatch() {
 
@@ -186,6 +195,8 @@ func (in *Raft) proposeBatch() {
 		}
 	}()
 }
+
+// create new entries in the log
 
 func (in *Raft) createNChoices(number int64) {
 
@@ -224,7 +235,10 @@ func (in *Raft) compareLog(lastLogIndex int64, lastLogTerm int64) bool {
 // receiver code for leader request
 
 func (in *Raft) RequestVote(ctx context.Context, req *proto.LeaderRequest) (*proto.LeaderResponse, error) {
-
+	if !in.startedFailureDetector {
+		in.startedFailureDetector = true
+		in.startViewTimeoutChecker()
+	}
 	in.centralMutex.Lock()
 	defer in.centralMutex.Unlock()
 
@@ -258,7 +272,10 @@ func (in *Raft) RequestVote(ctx context.Context, req *proto.LeaderRequest) (*pro
 // receiver side of the append entries RPC
 
 func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*proto.AppendResponse, error) {
-
+	if !in.startedFailureDetector {
+		in.startedFailureDetector = true
+		in.startViewTimeoutChecker()
+	}
 	in.centralMutex.Lock()
 	defer in.centralMutex.Unlock()
 
@@ -271,7 +288,6 @@ func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*p
 	if req.Term < currentTerm {
 
 		appendEntryResponse.Term = currentTerm
-		appendEntryResponse.LastIndex = -1
 		appendEntryResponse.Success = false
 		return &appendEntryResponse, nil
 	}
@@ -282,7 +298,6 @@ func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*p
 
 		appendEntryResponse.Term = currentTerm
 		appendEntryResponse.Success = false
-		appendEntryResponse.LastIndex = lenLog - 1
 		return &appendEntryResponse, nil
 	} else {
 		// PrevLogIndex exists
@@ -292,7 +307,6 @@ func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*p
 		if prevLogTerm != req.PrevLogTerm || prevLogValues.UniqueId != req.PrevLogValue {
 			appendEntryResponse.Term = currentTerm
 			appendEntryResponse.Success = false
-			appendEntryResponse.LastIndex = -1
 			return &appendEntryResponse, nil
 		} else {
 
@@ -325,15 +339,19 @@ func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*p
 
 			appendEntryResponse.Term = req.Term
 			appendEntryResponse.Success = true
-			appendEntryResponse.LastIndex = -1
 			return &appendEntryResponse, nil
 
 		}
 	}
 }
 
-func (in *Raft) requestVote() bool {
+// candidate sending a new leader request
 
+func (in *Raft) requestVote() bool {
+	if !in.startedFailureDetector {
+		in.startedFailureDetector = true
+		in.startViewTimeoutChecker()
+	}
 	in.lastSeenTimeLeader = time.Now()
 	term := in.currentTerm
 
@@ -415,8 +433,13 @@ func (in *Raft) requestVote() bool {
 	return (int64(yea) == in.numNodes/2+1) && !foundHigherTerm
 }
 
-func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch {
+// leader sending append entries rpc
 
+func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch {
+	if !in.startedFailureDetector {
+		in.startedFailureDetector = true
+		in.startViewTimeoutChecker()
+	}
 	in.lastSeenTimeLeader = time.Now()
 
 	var lastIndex int64
@@ -577,7 +600,7 @@ func (in *Raft) startViewTimeoutChecker() {
 				in.votedFor[int32(in.currentTerm)] = in.id
 				leaderElected := in.requestVote()
 				if leaderElected {
-					//fmt.Printf("%v became the leader in %v \n\n", in.nodeId, in.currentTerm)
+					fmt.Printf("%v became the leader in %v \n\n", in.id, in.currentTerm)
 					in.state = "L"
 					in.lastSeenTimeLeader = time.Now()
 				} else {

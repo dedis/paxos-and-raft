@@ -86,9 +86,9 @@ message AppendRequest {
 message AppendResponse {
   int64 term = 1;
   bool success = 2;
-  int64 lastIndex = 3;
 }
 
+// raft leader election
 
 message LeaderRequest {
   int64  term = 1;

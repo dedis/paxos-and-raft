@@ -68,6 +68,7 @@ type Replica struct {
 
 	lastProposedTime time.Time
 
+	requestsIn  chan []*proto.ClientBatch
 	requestsOut chan []*proto.ClientBatch // for raft client responses
 }
 
@@ -117,6 +118,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		state:               benchmark.Init(benchmarkMode, name, keyLen, valLen),
 		incomingRequests:    make([]*proto.ClientBatch, 0),
 		pipelineLength:      pipelineLength,
+		requestsIn:          make(chan []*proto.ClientBatch, incomingBufferSize),
 		requestsOut:         make(chan []*proto.ClientBatch, incomingBufferSize),
 	}
 

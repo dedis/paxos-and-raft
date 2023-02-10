@@ -49,7 +49,7 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 				rp.raftConsensus.SetupgRPC()
 				time.Sleep(time.Duration(2) * time.Second)
 				rp.raftConsensus.proposeBatch()
-				rp.raftConsensus.startViewTimeoutChecker()
+				rp.debug("started raft consensus with initial prepare", 0)
 			}
 		}
 	}

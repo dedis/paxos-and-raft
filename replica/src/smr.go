@@ -25,7 +25,7 @@ func (rp *Replica) handleClientBatch(batch *proto.ClientBatch) {
 			rp.sendPropose(proposals)
 		} else if rp.consAlgo == "raft" {
 			select {
-			case rp.raftConsensus.requestsIn <- proposals:
+			case rp.requestsIn <- proposals:
 				// message sent
 			default:
 				// message dropped
