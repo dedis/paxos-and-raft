@@ -109,10 +109,10 @@ func (rp *Replica) WaitForConnections() {
 		for true {
 			conn, err := Listener.Accept()
 			if err != nil {
-				panic(err.Error())
+				panic(err.Error() + fmt.Sprintf("%v", err))
 			}
 			if _, err := io.ReadFull(conn, bs); err != nil {
-				panic(err.Error())
+				panic(err.Error() + fmt.Sprintf("%v", err))
 			}
 			id := int32(binary.LittleEndian.Uint16(bs))
 			rp.debug("Received incoming connection from "+strconv.Itoa(int(id)), 0)

@@ -16,9 +16,9 @@ pkill client; pkill client; pkill client
 
 echo "Killed previously running instances"
 
-nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize 1 --batchTime 1    --debugOn --debugLevel 7 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}1.log &
-nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize 1 --batchTime 1    --debugOn --debugLevel 7 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}2.log &
-nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize 1 --batchTime 1    --debugOn --debugLevel 7 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}3.log &
+nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize 1 --batchTime 1    --debugOn --debugLevel 0 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}1.log &
+nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize 1 --batchTime 1    --debugOn --debugLevel 0 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}2.log &
+nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize 1 --batchTime 1    --debugOn --debugLevel 0 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}3.log &
 
 echo "Started 3 replicas"
 
@@ -41,16 +41,16 @@ echo "sent consensus start up status"
 
 echo "starting clients"
 
-nohup ./${ctl_path} --name 11 --requestType request --defaultReplica 2  --debugOn --debugLevel 6 --batchSize 1 --batchTime 1 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}11.log &
-nohup ./${ctl_path} --name 12 --requestType request --defaultReplica 2  --debugOn --debugLevel 6 --batchSize 1 --batchTime 1 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}12.log &
-nohup ./${ctl_path} --name 13 --requestType request --defaultReplica 2  --debugOn --debugLevel 6 --batchSize 1 --batchTime 1 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}13.log &
+nohup ./${ctl_path} --name 11 --requestType request --defaultReplica 2  --debugOn --debugLevel 10 --batchSize 1 --batchTime 1 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}11.log &
+nohup ./${ctl_path} --name 12 --requestType request --defaultReplica 2  --debugOn --debugLevel 10 --batchSize 1 --batchTime 1 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}12.log &
+./${ctl_path}       --name 13 --requestType request --defaultReplica 2  --debugOn --debugLevel 10 --batchSize 1 --batchTime 1 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}13.log
 
 sleep 180
 
 echo "finished running clients"
 
 
-./${ctl_path} --name 11 --requestType status --operationType 2  --debugOn --debugLevel 15 >${output_path}status2.log
+./${ctl_path} --name 11 --requestType status --operationType 2  --debugOn --debugLevel 0 >${output_path}status2.log
 
 echo "sent status to print logs"
 

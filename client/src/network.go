@@ -49,16 +49,19 @@ func (cl *Client) WaitForConnections() {
 	go func() {
 		var b [4]byte
 		bs := b[:4]
-		Listener, _ := net.Listen("tcp", cl.clientListenAddress)
+		Listener, err := net.Listen("tcp", cl.clientListenAddress)
+		if err != nil {
+			panic("should not happen " + fmt.Sprintf("%v", err))
+		}
 		cl.debug("Listening to incoming connection from "+cl.clientListenAddress, 0)
 
 		for true {
 			conn, err := Listener.Accept()
 			if err != nil {
-				panic("Socket accept error")
+				panic("Socket accept error" + fmt.Sprintf("%v", err))
 			}
 			if _, err := io.ReadFull(conn, bs); err != nil {
-				panic("connection read error when establishing incoming connections")
+				panic("connection read error when establishing incoming connections" + fmt.Sprintf("%v", err))
 			}
 			id := int32(binary.LittleEndian.Uint16(bs))
 			cl.debug("Received incoming connection from "+strconv.Itoa(int(id)), 0)
