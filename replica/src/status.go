@@ -24,14 +24,20 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 	} else if message.Type == 2 {
 		if rp.logPrinted == false {
 			rp.logPrinted = true
+			rp.cancel <- true
+			rp.cancel <- true
 			// empty the incoming channel
 			go func() {
 				for true {
 					_ = <-rp.incomingChan
 				}
 			}()
+
 			if rp.consAlgo == "paxos" {
 				rp.printPaxosLogConsensus() // this is for consensus testing purposes
+			}
+			if rp.consAlgo == "raft" {
+				rp.printRaftLogConsensus() // this is for consensus testing purposes
 			}
 
 		}
@@ -39,7 +45,7 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 		if rp.consensusStarted == false {
 			rp.consensusStarted = true
 			rp.lastProposedTime = time.Now()
-			rp.sendDummyRequests()
+			rp.sendDummyRequests(rp.cancel)
 			if rp.consAlgo == "paxos" {
 				rp.paxosConsensus.run()
 				rp.debug("started paxos consensus with initial prepare", 0)

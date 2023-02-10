@@ -70,6 +70,8 @@ type Replica struct {
 
 	requestsIn  chan []*proto.ClientBatch
 	requestsOut chan []*proto.ClientBatch // for raft client responses
+
+	cancel chan bool // to cancel the dummy client requests and the raft failure detector
 }
 
 const numOutgoingThreads = 100       // number of wire writers: since the I/O writing is expensive we delegate that task to a thread pool and separate from the critical path
@@ -120,6 +122,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		pipelineLength:      pipelineLength,
 		requestsIn:          make(chan []*proto.ClientBatch, incomingBufferSize),
 		requestsOut:         make(chan []*proto.ClientBatch, incomingBufferSize),
+		cancel:              make(chan bool, 7),
 	}
 
 	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers), name, &rp, pipelineLength)
@@ -155,7 +158,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		}
 	}
 
-	rp.raftConsensus = NewRaft(name, *cfg, debugOn, debugLevel, gAddress, int64(len(cfg.Peers)), int64(viewTimeout), logFilePath, rp.requestsIn, rp.requestsOut, &rp)
+	rp.raftConsensus = NewRaft(name, *cfg, debugOn, debugLevel, gAddress, int64(len(cfg.Peers)), int64(viewTimeout), logFilePath, rp.requestsIn, rp.requestsOut, &rp, rp.cancel)
 
 	pid := os.Getpid()
 	fmt.Printf("--Initialized %v replica %v with process id: %v \n", consAlgo, name, pid)

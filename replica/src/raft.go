@@ -64,10 +64,11 @@ type Raft struct {
 
 	replica                *Replica
 	startedFailureDetector bool
+	cancel                 chan bool
 }
 
 // create a new raft instance
-func NewRaft(id int32, cfg configuration.InstanceConfig, debugOn bool, debugLevel int, address string, numNodes int64, viewTimeOut int64, logFilePath string, requestsIn chan []*proto.ClientBatch, requestsOut chan []*proto.ClientBatch, replica *Replica) *Raft {
+func NewRaft(id int32, cfg configuration.InstanceConfig, debugOn bool, debugLevel int, address string, numNodes int64, viewTimeOut int64, logFilePath string, requestsIn chan []*proto.ClientBatch, requestsOut chan []*proto.ClientBatch, replica *Replica, cancel chan bool) *Raft {
 
 	r := &Raft{
 		id:           id,
@@ -107,6 +108,7 @@ func NewRaft(id int32, cfg configuration.InstanceConfig, debugOn bool, debugLeve
 		proposalCounter:        1,
 		replica:                replica,
 		startedFailureDetector: false,
+		cancel:                 cancel,
 	}
 
 	r.votedFor[1] = 2
@@ -240,7 +242,7 @@ func (in *Raft) compareLog(lastLogIndex int64, lastLogTerm int64) bool {
 func (in *Raft) RequestVote(ctx context.Context, req *proto.LeaderRequest) (*proto.LeaderResponse, error) {
 	if !in.startedFailureDetector {
 		in.startedFailureDetector = true
-		in.startViewTimeoutChecker()
+		in.startViewTimeoutChecker(in.cancel)
 	}
 	in.centralMutex.Lock()
 	defer in.centralMutex.Unlock()
@@ -280,7 +282,7 @@ func (in *Raft) RequestVote(ctx context.Context, req *proto.LeaderRequest) (*pro
 func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*proto.AppendResponse, error) {
 	if !in.startedFailureDetector {
 		in.startedFailureDetector = true
-		in.startViewTimeoutChecker()
+		in.startViewTimeoutChecker(in.cancel)
 	}
 	in.centralMutex.Lock()
 	defer in.centralMutex.Unlock()
@@ -361,7 +363,7 @@ func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*p
 func (in *Raft) requestVote() bool {
 	if !in.startedFailureDetector {
 		in.startedFailureDetector = true
-		in.startViewTimeoutChecker()
+		in.startViewTimeoutChecker(in.cancel)
 	}
 	in.lastSeenTimeLeader = time.Now()
 	term := in.currentTerm
@@ -451,7 +453,7 @@ func (in *Raft) requestVote() bool {
 func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch {
 	if !in.startedFailureDetector {
 		in.startedFailureDetector = true
-		in.startViewTimeoutChecker()
+		in.startViewTimeoutChecker(in.cancel)
 	}
 	in.lastSeenTimeLeader = time.Now()
 
@@ -604,30 +606,35 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 
 // check for leader liveness
 
-func (in *Raft) startViewTimeoutChecker() {
+func (in *Raft) startViewTimeoutChecker(cancel chan bool) {
 	go func() {
 		for {
-			time.Sleep(time.Duration(in.viewTimeOut+int64(rand.Intn(int(in.viewTimeOut)))) * time.Microsecond)
+			select {
+			case _ = <-cancel:
+				return
+			default:
+				time.Sleep(time.Duration(in.viewTimeOut+int64(rand.Intn(int(in.viewTimeOut)))) * time.Microsecond)
 
-			lastSeenTimeLeader := in.lastSeenTimeLeader
+				lastSeenTimeLeader := in.lastSeenTimeLeader
 
-			if time.Now().Sub(lastSeenTimeLeader).Microseconds() > in.viewTimeOut {
-				in.debug("timeout!"+fmt.Sprintf(""), 7)
-				in.centralMutex.Lock()
-				in.state = "C"
-				in.currentTerm++
-				in.votedFor[int32(in.currentTerm)] = in.id
-				leaderElected := in.requestVote()
-				if leaderElected {
-					fmt.Printf("%v became the leader in %v \n\n", in.id, in.currentTerm)
-					in.state = "L"
-					in.lastSeenTimeLeader = time.Now()
-				} else {
-					in.debug("leader election failed"+fmt.Sprintf(""), 7)
-					in.state = "F"
+				if time.Now().Sub(lastSeenTimeLeader).Microseconds() > in.viewTimeOut {
+					in.debug("timeout!"+fmt.Sprintf(""), 7)
+					in.centralMutex.Lock()
+					in.state = "C"
+					in.currentTerm++
+					in.votedFor[int32(in.currentTerm)] = in.id
+					leaderElected := in.requestVote()
+					if leaderElected {
+						fmt.Printf("%v became the leader in %v \n\n", in.id, in.currentTerm)
+						in.state = "L"
+						in.lastSeenTimeLeader = time.Now()
+					} else {
+						in.debug("leader election failed"+fmt.Sprintf(""), 7)
+						in.state = "F"
+					}
+					in.centralMutex.Unlock()
+
 				}
-				in.centralMutex.Unlock()
-
 			}
 
 		}
