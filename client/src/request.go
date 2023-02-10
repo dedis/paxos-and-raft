@@ -67,37 +67,53 @@ func (cl *Client) startRequestGenerators() {
 					})
 					numRequests++
 				}
-				// create a new client batch
+
+				for i, _ := range cl.replicaAddrList {
+
+					var requests_i []*proto.SingleOperation
+
+					for j := 0; j < len(requests); j++ {
+						requests_i = append(requests_i, requests[j])
+					}
+
+					// create a new client batch
+					batch := proto.ClientBatch{
+						UniqueId: strconv.Itoa(int(cl.clientName)) + "." + strconv.Itoa(threadNumber) + "." + strconv.Itoa(localCounter), // this is a unique string id,
+						Requests: requests_i,
+						Sender:   int64(cl.clientName),
+					}
+					cl.debug("Sending "+strconv.Itoa(int(cl.clientName))+"."+strconv.Itoa(threadNumber)+"."+strconv.Itoa(localCounter)+" batch size "+strconv.Itoa(len(requests)), 0)
+
+					rpcPair := common.RPCPair{
+						Code: cl.messageCodes.ClientBatchRpc,
+						Obj:  &batch,
+					}
+
+					cl.sendMessage(i, rpcPair)
+				}
+
+				//if time.Now().Sub(cl.lastSeenTimeLeader).Microseconds() > int64(cl.leaderTimeout) {
+				//	found := false
+				//	for !found {
+				//		defaultReplica := int32(-1)
+				//		for name, _ := range cl.replicaAddrList {
+				//			defaultReplica = name
+				//			break
+				//		}
+				//
+				//		if cl.defaultReplica != defaultReplica {
+				//			cl.defaultReplica = defaultReplica
+				//			cl.debug("changed leader to "+strconv.Itoa(int(cl.defaultReplica)), 6)
+				//			found = true
+				//		}
+				//	}
+				//}
 				batch := proto.ClientBatch{
 					UniqueId: strconv.Itoa(int(cl.clientName)) + "." + strconv.Itoa(threadNumber) + "." + strconv.Itoa(localCounter), // this is a unique string id,
 					Requests: requests,
 					Sender:   int64(cl.clientName),
 				}
-				cl.debug("Sending "+strconv.Itoa(int(cl.clientName))+"."+strconv.Itoa(threadNumber)+"."+strconv.Itoa(localCounter)+" batch size "+strconv.Itoa(len(requests)), 0)
 				localCounter++
-				rpcPair := common.RPCPair{
-					Code: cl.messageCodes.ClientBatchRpc,
-					Obj:  &batch,
-				}
-
-				if time.Now().Sub(cl.lastSeenTimeLeader).Microseconds() > int64(cl.leaderTimeout) {
-					found := false
-					for !found {
-						defaultReplica := int32(-1)
-						for name, _ := range cl.replicaAddrList {
-							defaultReplica = name
-							break
-						}
-
-						if cl.defaultReplica != defaultReplica {
-							cl.defaultReplica = defaultReplica
-							cl.debug("changed leader to "+strconv.Itoa(int(cl.defaultReplica)), 6)
-							found = true
-						}
-					}
-				}
-
-				cl.sendMessage(cl.defaultReplica, rpcPair)
 				lastSent = time.Now()
 				cl.sentRequests[threadNumber] = append(cl.sentRequests[threadNumber], requestBatch{
 					batch: batch,

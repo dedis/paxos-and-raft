@@ -190,13 +190,13 @@ func (in *Raft) proposeBatch() {
 				in.centralMutex.Unlock()
 				continue
 			}
+			in.centralMutex.Unlock()
 			clientResponses := in.appendEntries(requests)
 			in.debug("proposed 1 batch", 0)
 			if clientResponses != nil {
 				in.debug("sent back 1 batch of client responses", 5)
 				in.requestsOut <- clientResponses
 			}
-			in.centralMutex.Unlock()
 		}
 	}()
 }
@@ -361,10 +361,7 @@ func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*p
 // candidate sending a new leader request
 
 func (in *Raft) requestVote() bool {
-	if !in.startedFailureDetector {
-		in.startedFailureDetector = true
-		in.startViewTimeoutChecker(in.cancel)
-	}
+
 	in.lastSeenTimeLeader = time.Now()
 	term := in.currentTerm
 
@@ -455,6 +452,7 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 		in.startedFailureDetector = true
 		in.startViewTimeoutChecker(in.cancel)
 	}
+	in.centralMutex.Lock()
 	in.lastSeenTimeLeader = time.Now()
 
 	var lastIndex int64
@@ -491,7 +489,7 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 
 	responses := make(chan *response, in.numNodes-1)
 	in.debug("invoking append entry for index "+fmt.Sprintf("%v", lastIndex), 7)
-
+	in.centralMutex.Unlock()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(10)*time.Second)
 	cancelled := false
 	wg := sync.WaitGroup{}
@@ -545,10 +543,12 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 					// retry
 					if prevLogIndexLocal >= 1 {
 						prevLogIndexLocal--
+						in.centralMutex.Lock()
 						prevLogTermLocal = in.log[prevLogIndexLocal].term
 						prevLogValueLocal = in.log[prevLogIndexLocal].commands.UniqueId
 						prevValues := in.log[prevLogIndexLocal+1].commands
 						prevTerm := in.log[prevLogIndexLocal+1].term
+						in.centralMutex.Unlock()
 						entriesLocal = append([]*proto.AppendRequestEntry{{Value: &prevValues, Term: prevTerm}}, entriesLocal...)
 
 					} else {
@@ -594,7 +594,9 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 				} else if int64(yea) == in.numNodes/2+1 {
 					// decide
 					in.debug("append entry succeeded for index "+fmt.Sprintf("%v", len(in.log)-1), 7)
+					in.centralMutex.Lock()
 					clientResponses = in.updateRaftSMR((len(in.log)) - 1)
+					in.centralMutex.Unlock()
 				}
 				break
 			}
