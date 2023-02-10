@@ -124,18 +124,6 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 
 	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers), name, &rp, pipelineLength)
 
-	gAddress := ""
-	for i := 0; i < len(cfg.Peers); i++ {
-		if cfg.Peers[i].Name == strconv.Itoa(int(name)) {
-			gAddress = cfg.Peers[i].GAddress
-			break
-		}
-	}
-
-	rp.raftConsensus = NewRaft(name, *cfg, debugOn, debugLevel, gAddress, int64(len(cfg.Peers)), int64(viewTimeout), logFilePath, rp.requestsIn, rp.requestsOut, &rp)
-
-	rp.debug("Created a new replica instance", 0)
-
 	// initialize clientAddrList
 	for i := 0; i < len(cfg.Clients); i++ {
 		int32Name, _ := strconv.ParseInt(cfg.Clients[i].Name, 10, 32)
@@ -158,6 +146,16 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 	rp.RegisterRPC(new(proto.PaxosConsensus), rp.messageCodes.PaxosConsensus)
 
 	rp.debug("Registered RPCs in the table", 0)
+
+	gAddress := ""
+	for i := 0; i < len(cfg.Peers); i++ {
+		if cfg.Peers[i].Name == strconv.Itoa(int(name)) {
+			gAddress = cfg.Peers[i].GAddress
+			break
+		}
+	}
+
+	rp.raftConsensus = NewRaft(name, *cfg, debugOn, debugLevel, gAddress, int64(len(cfg.Peers)), int64(viewTimeout), logFilePath, rp.requestsIn, rp.requestsOut, &rp)
 
 	pid := os.Getpid()
 	fmt.Printf("--Initialized %v replica %v with process id: %v \n", consAlgo, name, pid)
