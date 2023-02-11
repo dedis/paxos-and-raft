@@ -69,12 +69,16 @@ func NewTimerWithCancel(d time.Duration) *TimerWithCancel {
 func (t *TimerWithCancel) Start() {
 	t.t = time.NewTimer(t.d)
 	go func() {
-		select {
-		case <-t.t.C:
-			t.f()
-			break
-		case <-t.c:
-			break
+		for true {
+			select {
+			case <-t.t.C:
+				t.f()
+				break
+			case <-t.c:
+				break
+			default:
+				time.Sleep(time.Duration(1) * time.Millisecond)
+			}
 		}
 	}()
 }
@@ -103,7 +107,7 @@ func (t *TimerWithCancel) Cancel() {
 }
 
 /*
-	A util function to get the size of a message
+	util function to get the size of a message
 */
 
 func GetRealSizeOf(v interface{}) (int, error) {
