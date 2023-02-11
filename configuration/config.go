@@ -28,7 +28,7 @@ var (
 type Instance struct {
 	Name     string `yaml:"name"`
 	Address  string `yaml:"address"`  // address should be in the form x.x.x.x:yyyy
-	GAddress string `yaml:"gaddress"` // address should be in the form x.x.x.x:yyyy
+	GAddress string `yaml:"gaddress"` // gaddress should be in the form x.x.x.x:yyyy
 }
 
 // InstanceConfig describes the set of peers and clients in the system
@@ -109,13 +109,14 @@ func checkInstanceList(instances ...Instance) error {
 		seenNames[in.Name] = true
 
 		// Instance address must be unique in the configuration file.
-		if len(in.Address) == 0 {
+		if len(in.Address) == 0 || len(in.GAddress) == 0 {
 			return ErrInvalidInstanceDefinition
 		}
-		if seenAddresses[in.Address] {
+		if seenAddresses[in.Address] || seenAddresses[in.GAddress] {
 			return ErrDuplicateInstance
 		}
 		seenAddresses[in.Address] = true
+		seenAddresses[in.GAddress] = true
 	}
 	return nil
 }
