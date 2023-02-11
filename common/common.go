@@ -73,9 +73,9 @@ func (t *TimerWithCancel) Start() {
 			select {
 			case <-t.t.C:
 				t.f()
-				break
+				return
 			case <-t.c:
-				break
+				return
 			default:
 				time.Sleep(time.Duration(1) * time.Millisecond)
 			}
