@@ -21,13 +21,13 @@ func (cl *Client) handleClientResponseBatch(batch *proto.ClientBatch) {
 		time:  time.Now(), // record the time when the response was received
 	}
 	cl.debug("Added response Batch "+fmt.Sprintf(" %v ", batch), 0)
-	cl.lastSeenTimeLeader = time.Now()
+	//cl.lastSeenTimeLeader = time.Now()
 
 }
 
 /*
 	start the poisson arrival process (put arrivals to arrivalTimeChan) in a separate thread
-	start request generation processes  (get arrivals from arrivalTimeChan and generate batches and send them) in separate threads, and send them to the default replica, and write batch to the correct array in sentRequests
+	start request generation processes  (get arrivals from arrivalTimeChan and generate batches and send them) in separate threads, and send them to all replicas, and write batch to the correct array in sentRequests
 	start the scheduler that schedules new requests
 	the thread sleeps for test duration and then starts processing the responses. This is to handle inflight responses after the test duration
 */
@@ -35,7 +35,6 @@ func (cl *Client) handleClientResponseBatch(batch *proto.ClientBatch) {
 func (cl *Client) SendRequests() {
 	cl.generateArrivalTimes()
 	cl.startRequestGenerators()
-	cl.lastSeenTimeLeader = time.Now()
 	cl.startScheduler() // this is sync, main thread waits for this to finish
 
 	// end of test

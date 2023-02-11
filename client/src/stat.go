@@ -9,7 +9,7 @@ import (
 )
 
 /*
-iteratively calculate the number of elements in the 2d array
+calculate the number of elements in the 2d array
 */
 func (cl *Client) getNumberOfSentRequests(requests [][]requestBatch) int {
 	count := 0

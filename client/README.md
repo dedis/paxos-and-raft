@@ -10,4 +10,4 @@ To send a status request ```./client/bin/client --name 11 --requestType status -
 
 To send client requests with minimal options ```./client/bin/client --name 11 --defaultReplica 1 --requestType request```
 
-You can find a bunch of supported paramters in the ```client/main.go``` 
+You can find the of supported parameters in the ```client/main.go``` 

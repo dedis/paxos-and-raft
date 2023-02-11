@@ -9,7 +9,7 @@ import (
 )
 
 /*
-	When a status response is received, print it to console
+	when a status response is received, print it to console
 */
 
 func (cl *Client) handleClientStatusResponse(response *proto.Status) {

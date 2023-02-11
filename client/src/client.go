@@ -42,11 +42,10 @@ type Client struct {
 	debugOn    bool // if turned on, the debug messages will be printed on the console
 	debugLevel int  // current debug level
 
-	testDuration       int // test duration in seconds
-	arrivalRate        int // poisson rate of the arrivals (requests per second)
-	leaderTimeout      int // leader timeout
-	lastSeenTimeLeader time.Time
-
+	testDuration  int // test duration in seconds
+	arrivalRate   int // poisson rate of the arrivals (requests per second)
+	leaderTimeout int // leader timeout
+	
 	arrivalTimeChan     chan int64              // channel to which the poisson process adds new request arrival times in nanoseconds w.r.t test start time
 	arrivalChan         chan bool               // channel to which the main scheduler adds new request indications, to be consumed by the request generation threads
 	RequestType         string                  // [request] for sending a stream of client requests, [status] for sending a status request
@@ -57,7 +56,6 @@ type Client struct {
 	clientListenAddress string                  // TCP address to which the client listens to new incoming TCP connections
 	keyLen              int                     // length of key
 	valueLen            int                     // length of value
-
 }
 
 /*
