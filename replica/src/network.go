@@ -157,7 +157,7 @@ func (rp *Replica) Run() {
 
 			case rp.messageCodes.ClientBatchRpc:
 				clientBatch := replicaMessage.Obj.(*proto.ClientBatch)
-				rp.debug("Client batch message from "+fmt.Sprintf("%#v", clientBatch.Sender), 0)
+				rp.debug("Client batch message from "+fmt.Sprintf("%#v", clientBatch.Sender), 7)
 				rp.handleClientBatch(clientBatch)
 				break
 
@@ -168,10 +168,13 @@ func (rp *Replica) Run() {
 				break
 
 			}
+			break
 		case clientRespBatches := <-rp.requestsOut:
 			rp.sendClientResponses(clientRespBatches)
+			break
 		default:
 			// message dropped
+			break
 		}
 
 	}
@@ -184,8 +187,6 @@ func (rp *Replica) Run() {
 func (rp *Replica) internalSendMessage(peer int32, rpcPair *common.RPCPair) {
 	peerType := rp.getNodeType(peer)
 	if peerType == "replica" {
-		// we delay the consensus message  to avoid the curse of small consensus message sizes
-
 		w := rp.outgoingReplicaWriters[peer]
 		if w == nil {
 			panic("replica not found")

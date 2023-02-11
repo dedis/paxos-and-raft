@@ -27,8 +27,10 @@ func (rp *Replica) handleClientBatch(batch *proto.ClientBatch) {
 			select {
 			case rp.requestsIn <- proposals:
 				// message sent
+				break
 			default:
 				// message dropped
+				break
 			}
 		}
 		rp.lastProposedTime = time.Now()
@@ -76,6 +78,7 @@ func (rp *Replica) sendDummyRequests(cancel chan bool) {
 					Code: rp.messageCodes.ClientBatchRpc,
 					Obj:  &clientBatch,
 				})
+				break
 			}
 
 		}

@@ -9,7 +9,7 @@ import (
 
 /*
 	Handler for status message
-		1. Invoke bootstrap or printlog depending on the operation type
+		1. Invoke bootstrap / start consensus or printlog depending on the operation type
 		2. Send a response back to the sender
 */
 

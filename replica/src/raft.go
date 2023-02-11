@@ -637,6 +637,8 @@ func (in *Raft) startViewTimeoutChecker(cancel chan bool) {
 					in.centralMutex.Unlock()
 
 				}
+
+				break
 			}
 
 		}
