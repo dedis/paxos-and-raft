@@ -185,12 +185,6 @@ func (in *Raft) proposeBatch() {
 	go func() {
 		for true {
 			requests := <-in.requestsIn
-			in.centralMutex.Lock()
-			if in.id != in.votedFor[int32(in.currentTerm)] || in.state != "L" {
-				in.centralMutex.Unlock()
-				continue
-			}
-			in.centralMutex.Unlock()
 			clientResponses := in.appendEntries(requests)
 			in.debug("proposed 1 batch", 0)
 			if clientResponses != nil {
@@ -453,6 +447,11 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 		in.startViewTimeoutChecker(in.cancel)
 	}
 	in.centralMutex.Lock()
+	if in.id != in.votedFor[int32(in.currentTerm)] || in.state != "L" {
+		in.centralMutex.Unlock()
+		return nil
+	}
+
 	in.lastSeenTimeLeader = time.Now()
 
 	var lastIndex int64
