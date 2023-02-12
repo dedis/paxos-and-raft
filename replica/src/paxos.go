@@ -506,6 +506,16 @@ func (rp *Replica) sendPropose(requests []*proto.ClientBatch) { // requests can 
 */
 
 func (rp *Replica) handlePropose(message *proto.PaxosConsensus) {
+
+	for i := 0; i < len(message.DecidedValues); i++ {
+		rp.createPaxosInstanceIfMissing(int(message.DecidedValues[i].Number))
+		if !rp.paxosConsensus.replicatedLog[message.DecidedValues[i].Number].decided {
+			rp.paxosConsensus.replicatedLog[message.DecidedValues[i].Number].decided = true
+			rp.paxosConsensus.replicatedLog[message.DecidedValues[i].Number].acceptedValue = message.DecidedValues[i].Value
+			rp.debug("decided index "+fmt.Sprintf("%v", message.DecidedValues[i].Number), 7)
+		}
+	}
+
 	rp.createPaxosInstanceIfMissing(int(message.InstanceNumber))
 
 	// if the message is from a future view, become an acceptor and set the new leader
@@ -526,14 +536,6 @@ func (rp *Replica) handlePropose(message *proto.PaxosConsensus) {
 
 		rp.paxosConsensus.replicatedLog[message.InstanceNumber].acceptedBallot = message.Ballot
 		rp.paxosConsensus.replicatedLog[message.InstanceNumber].acceptedValue = message.ProposeValue
-
-		for i := 0; i < len(message.DecidedValues); i++ {
-			if !rp.paxosConsensus.replicatedLog[message.DecidedValues[i].Number].decided {
-				rp.paxosConsensus.replicatedLog[message.DecidedValues[i].Number].decided = true
-				rp.paxosConsensus.replicatedLog[message.DecidedValues[i].Number].acceptedValue = message.DecidedValues[i].Value
-				rp.debug("decided index "+fmt.Sprintf("%v", message.DecidedValues[i].Number), 7)
-			}
-		}
 
 		// send an accept message to the sender
 		acceptMsg := proto.PaxosConsensus{
@@ -569,7 +571,7 @@ func (rp *Replica) handleAccept(message *proto.PaxosConsensus) {
 		panic("Received accept without having an instance")
 	}
 
-	if message.View == rp.paxosConsensus.view && message.Ballot == rp.paxosConsensus.replicatedLog[message.InstanceNumber].proposedBallot && rp.paxosConsensus.state == "L" {
+	if message.View <= rp.paxosConsensus.view && message.Ballot == rp.paxosConsensus.replicatedLog[message.InstanceNumber].proposedBallot && rp.paxosConsensus.state == "L" {
 
 		// add the accept to proposeResponses
 		rp.paxosConsensus.replicatedLog[message.InstanceNumber].proposeResponses++
