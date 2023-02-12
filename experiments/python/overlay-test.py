@@ -1,7 +1,8 @@
 import sys
 
+time = float(sys.argv[1])
 files = []
-for i in range(1, len(sys.argv)):
+for i in range(2, len(sys.argv)):
     dict = {}
     lines = []
     with open(sys.argv[i]) as file:
@@ -17,20 +18,21 @@ for i in range(1, len(sys.argv)):
     files.append(dict)
     print("Length of " + sys.argv[i] + " is " + str(numberOfRequests))
     print("Approximate throughput " + str(
-        numberOfRequests / 60.0) + "requests per second")  # assuming a test duration of 60s
+        numberOfRequests / time) + "requests per second")
+
 
 def checkMaps(files):
     misMatch = 0
     match = 0
     for i in range(len(files)):
         map = files[i]
-        mapName = sys.argv[i + 1]
+        mapName = sys.argv[i + 2]
         for key in map.keys():
             for j in range(len(files)):
                 if i == j:
                     continue
                 else:
-                    tarName = sys.argv[j + 1]
+                    tarName = sys.argv[j + 2]
                     if key in files[j].keys():
                         if not (files[j][key] == map[key]):
                             print("Mismatch in log position " + str(key) + " in " + mapName + ":" + map[

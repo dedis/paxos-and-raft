@@ -157,7 +157,7 @@ func (rp *Replica) Run() {
 
 			case rp.messageCodes.ClientBatchRpc:
 				clientBatch := replicaMessage.Obj.(*proto.ClientBatch)
-				rp.debug("Client batch message from "+fmt.Sprintf("%#v", clientBatch.Sender), 7)
+				rp.debug("Client batch message from "+fmt.Sprintf("%#v", clientBatch.Sender), 0)
 				rp.handleClientBatch(clientBatch)
 				break
 

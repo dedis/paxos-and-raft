@@ -41,9 +41,9 @@ echo "sent consensus start up status"
 
 echo "starting clients"
 
-nohup ./${ctl_path} --name 11 --requestType request --defaultReplica 2  --debugOn --debugLevel 6 --batchSize 50 --batchTime 1 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}11.log &
-nohup ./${ctl_path} --name 12 --requestType request --defaultReplica 2  --debugOn --debugLevel 6 --batchSize 50 --batchTime 1 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}12.log &
-./${ctl_path}       --name 13 --requestType request --defaultReplica 2  --debugOn --debugLevel 6 --batchSize 50 --batchTime 1 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" >${output_path}13.log
+nohup ./${ctl_path} --name 11 --requestType request --defaultReplica 2  --debugOn --debugLevel 6 --batchSize 50 --batchTime 1 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration 10 >${output_path}11.log &
+nohup ./${ctl_path} --name 12 --requestType request --defaultReplica 2  --debugOn --debugLevel 6 --batchSize 50 --batchTime 1 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration 10  >${output_path}12.log &
+./${ctl_path}       --name 13 --requestType request --defaultReplica 2  --debugOn --debugLevel 6 --batchSize 50 --batchTime 1 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration 10  >${output_path}13.log
 
 sleep 10
 
@@ -59,7 +59,7 @@ sleep 30
 pkill replica; pkill replica; pkill replica
 pkill client; pkill client; pkill client
 
-python3 experiments/python/overlay-test.py logs/1-consensus.txt logs/2-consensus.txt logs/3-consensus.txt > ${output_path}python-consensus.log
+python3 experiments/python/overlay-test.py 10 logs/1-consensus.txt logs/2-consensus.txt logs/3-consensus.txt > ${output_path}python-consensus.log
 
 echo "Killed instances"
 

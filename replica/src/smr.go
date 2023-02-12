@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"paxos_raft/common"
 	"paxos_raft/proto"
+	"strconv"
 	"time"
 )
 
@@ -34,6 +35,8 @@ func (rp *Replica) handleClientBatch(batch *proto.ClientBatch) {
 			}
 		}
 		rp.lastProposedTime = time.Now()
+	} else {
+		rp.debug("Still did not invoke propose from smr, num client batches = "+strconv.Itoa(int(len(rp.incomingRequests)))+" ,time since last proposal "+strconv.Itoa(int(time.Now().Sub(rp.lastProposedTime).Microseconds())), 7)
 	}
 
 }
