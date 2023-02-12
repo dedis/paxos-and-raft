@@ -646,7 +646,7 @@ func (in *Raft) startViewTimeoutChecker(cancel chan bool) {
 
 func (in *Raft) updateRaftSMR(commitIndex int) []*proto.ClientBatch {
 	responses := make([]*proto.ClientBatch, 0)
-	for commitIndex > int(in.commitIndex) {
+	for commitIndex >= int(in.commitIndex) {
 		in.log[in.commitIndex+1].decided = true
 		responses = append(responses, in.replica.updateApplicationLogic(in.log[in.commitIndex+1].commands.Requests)...)
 		in.debug("committed index "+fmt.Sprintf("%v", in.commitIndex), 7)
