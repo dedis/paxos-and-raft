@@ -16,9 +16,9 @@ pkill client; pkill client; pkill client
 
 echo "Killed previously running instances"
 
-nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize 50 --batchTime 1000   --debugOn --debugLevel 7 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}1.log &
-nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize 50 --batchTime 1000   --debugOn --debugLevel 7 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}2.log &
-nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize 50 --batchTime 1000   --debugOn --debugLevel 7 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}3.log &
+nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize 50 --batchTime 1   --debugOn --debugLevel 7 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}1.log &
+nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize 50 --batchTime 1   --debugOn --debugLevel 7 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}2.log &
+nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize 50 --batchTime 1   --debugOn --debugLevel 7 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}3.log &
 
 echo "Started 3 replicas"
 

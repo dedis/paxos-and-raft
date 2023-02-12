@@ -169,7 +169,7 @@ func (in *Raft) SetupgRPC() {
 }
 
 /*
-	if turned on, prints the message to console
+	if turned on, print the message to console
 */
 
 func (in *Raft) debug(message string, level int) {
@@ -265,7 +265,7 @@ func (in *Raft) RequestVote(ctx context.Context, req *proto.LeaderRequest) (*pro
 			in.state = "F"
 			leaderResponse.Term = req.Term
 			leaderResponse.VoteGranted = true
-			in.debug("request vote succeed", 7)
+			in.debug("leader for term "+fmt.Sprintf(" %v is %v", in.currentTerm, req.CandidateId), 7)
 
 		} else {
 			leaderResponse.Term = currentTerm
@@ -399,11 +399,11 @@ func (in *Raft) requestVote() bool {
 
 			if err != nil {
 				responses <- &response{term: -1, voteGranted: false}
-				in.debug("request vote failed with"+fmt.Sprintf("%v", err), 7)
+				in.debug("request vote failed with"+fmt.Sprintf("%v", err), 0)
 				return
 			} else {
 				responses <- &response{term: resp.Term, voteGranted: resp.VoteGranted}
-				in.debug("request vote received "+fmt.Sprintf("%v", resp), 7)
+				in.debug("request vote received "+fmt.Sprintf("%v", resp), 0)
 				return
 			}
 		}(p)
@@ -524,7 +524,7 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 
 			if err != nil {
 				responses <- &response{success: false, term: -1}
-				in.debug("append entry failed with"+fmt.Sprintf("%v", err), 7)
+				in.debug("append entry failed with"+fmt.Sprintf("%v", err), 0)
 				return
 			} else {
 				respTerm := resp.Term
@@ -532,14 +532,14 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 
 				if respSuccess {
 					responses <- &response{success: true, term: respTerm}
-					in.debug("append entry rpc succeeded"+fmt.Sprintf("%v", respSuccess), 7)
+					in.debug("append entry rpc succeeded"+fmt.Sprintf("%v", respSuccess), 0)
 					return
 				} else if respTerm > termLocal {
 					responses <- &response{success: false, term: respTerm}
-					in.debug("append entry rpc failed with higher term"+fmt.Sprintf("%v", respTerm), 7)
+					in.debug("append entry rpc failed with higher term"+fmt.Sprintf("%v", respTerm), 0)
 					return
 				} else if !respSuccess && respTerm <= termLocal {
-					in.debug("append entry rpc failed with previous index mismatch"+fmt.Sprintf(""), 7)
+					in.debug("append entry rpc failed with previous index mismatch"+fmt.Sprintf(""), 0)
 					// retry
 					if prevLogIndexLocal >= 1 {
 						prevLogIndexLocal--
@@ -627,7 +627,7 @@ func (in *Raft) startViewTimeoutChecker(cancel chan bool) {
 					in.votedFor[int32(in.currentTerm)] = in.id
 					leaderElected := in.requestVote()
 					if leaderElected {
-						fmt.Printf("%v became the leader in %v \n\n", in.id, in.currentTerm)
+						fmt.Printf("%v became the leader in term %v \n", in.id, in.currentTerm)
 						in.state = "L"
 						in.lastSeenTimeLeader = time.Now()
 					} else {
@@ -635,15 +635,11 @@ func (in *Raft) startViewTimeoutChecker(cancel chan bool) {
 						in.state = "F"
 					}
 					in.centralMutex.Unlock()
-
 				}
-
 				break
 			}
-
 		}
 	}()
-
 }
 
 // update smr
@@ -674,8 +670,7 @@ func (rp *Replica) printRaftLogConsensus() {
 		}
 		for j := 0; j < len(rp.raftConsensus.log[i].commands.Requests); j++ {
 			for k := 0; k < len(rp.raftConsensus.log[i].commands.Requests[j].Requests); k++ {
-				_, _ = f.WriteString(strconv.Itoa(int(i)) + "-" + strconv.Itoa(int(j)) + "-" + strconv.Itoa(int(k)) + "-" + ":" + rp.raftConsensus.log[i].commands.Requests[j].Requests[k].Command + "\n")
-
+				_, _ = f.WriteString(strconv.Itoa(int(i)) + "-" + strconv.Itoa(int(j)) + "-" + strconv.Itoa(int(k)) + ":" + rp.raftConsensus.log[i].commands.Requests[j].Requests[k].Command + "\n")
 			}
 		}
 	}
