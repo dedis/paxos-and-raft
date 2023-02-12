@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"paxos_raft/common"
 	"paxos_raft/proto"
+	"runtime"
 	"time"
 )
 
@@ -40,6 +41,7 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 				rp.printRaftLogConsensus() // this is for consensus testing purposes
 			}
 
+			fmt.Printf("num go routines: %v \n", runtime.NumGoroutine())
 		}
 	} else if message.Type == 3 {
 		if rp.consensusStarted == false {

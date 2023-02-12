@@ -494,9 +494,9 @@ func (rp *Replica) sendPropose(requests []*proto.ClientBatch) { // requests can 
 		rp.setPaxosViewTimer(rp.paxosConsensus.view)
 	} else if rp.paxosConsensus.state == "L" && rp.paxosConsensus.lastPreparedBallot >= rp.paxosConsensus.lastPromisedBallot {
 		rp.incomingRequests = append(rp.incomingRequests, requests...)
-		rp.debug("saving for later proposal due to full pipeline while I am the leader "+" in view "+strconv.Itoa(int(rp.paxosConsensus.view)), 7)
+		rp.debug("saving for later proposal due to full pipeline while I am the leader "+" in view "+strconv.Itoa(int(rp.paxosConsensus.view)), 0)
 	} else {
-		rp.debug("dropping requests because i am not the leader "+" in view "+strconv.Itoa(int(rp.paxosConsensus.view)), 7)
+		rp.debug("dropping requests because i am not the leader "+" in view "+strconv.Itoa(int(rp.paxosConsensus.view)), 0)
 	}
 }
 
