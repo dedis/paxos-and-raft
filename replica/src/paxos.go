@@ -19,14 +19,14 @@ type PaxosInstance struct {
 	promisedBallot int32
 	acceptedBallot int32
 
-	acceptedValue *proto.ReplicaBatch
-	proposedValue *proto.ReplicaBatch
+	acceptedValue proto.ReplicaBatch
+	proposedValue proto.ReplicaBatch
 	decided       bool
 
 	proposeResponses int
 
 	highestSeenAcceptedBallot int32
-	highestSeenAcceptedValue  *proto.ReplicaBatch
+	highestSeenAcceptedValue  proto.ReplicaBatch
 }
 
 /*
@@ -66,11 +66,11 @@ func InitPaxosConsensus(numReplicas int, name int32, replica *Replica, pipelineL
 		proposedBallot:            -1,
 		promisedBallot:            -1,
 		acceptedBallot:            -1,
-		acceptedValue:             nil,
+		acceptedValue:             proto.ReplicaBatch{},
 		decided:                   true,
 		proposeResponses:          0,
 		highestSeenAcceptedBallot: -1,
-		highestSeenAcceptedValue:  nil,
+		highestSeenAcceptedValue:  proto.ReplicaBatch{},
 	})
 
 	// create initial slots
@@ -79,11 +79,11 @@ func InitPaxosConsensus(numReplicas int, name int32, replica *Replica, pipelineL
 			proposedBallot:            -1,
 			promisedBallot:            -1,
 			acceptedBallot:            -1,
-			acceptedValue:             nil,
+			acceptedValue:             proto.ReplicaBatch{},
 			decided:                   false,
 			proposeResponses:          0,
 			highestSeenAcceptedBallot: -1,
-			highestSeenAcceptedValue:  nil,
+			highestSeenAcceptedValue:  proto.ReplicaBatch{},
 		})
 	}
 
@@ -133,11 +133,11 @@ func (rp *Replica) createNPaxosInstances(number int) {
 			proposedBallot:            -1,
 			promisedBallot:            rp.paxosConsensus.lastPromisedBallot,
 			acceptedBallot:            -1,
-			acceptedValue:             nil,
+			acceptedValue:             proto.ReplicaBatch{},
 			decided:                   false,
 			proposeResponses:          0,
 			highestSeenAcceptedBallot: -1,
-			highestSeenAcceptedValue:  nil,
+			highestSeenAcceptedValue:  proto.ReplicaBatch{},
 		})
 
 		rp.paxosConsensus.nextFreeInstance++
@@ -318,7 +318,7 @@ func (rp *Replica) handlePrepare(message *proto.PaxosConsensus) {
 			prepareResponses = append(prepareResponses, &proto.PaxosConsensusInstance{
 				Number: i,
 				Ballot: rp.paxosConsensus.replicatedLog[i].acceptedBallot,
-				Value:  rp.paxosConsensus.replicatedLog[i].acceptedValue,
+				Value:  &rp.paxosConsensus.replicatedLog[i].acceptedValue,
 			})
 
 			if rp.paxosConsensus.replicatedLog[i].promisedBallot >= message.Ballot {
@@ -405,7 +405,7 @@ func (rp *Replica) handlePromise(message *proto.PaxosConsensus) {
 					rp.createPaxosInstanceIfMissing(int(instanceNumber))
 					if lastAcceptedEntries[j].Ballot > rp.paxosConsensus.replicatedLog[instanceNumber].highestSeenAcceptedBallot {
 						rp.paxosConsensus.replicatedLog[instanceNumber].highestSeenAcceptedBallot = lastAcceptedEntries[j].Ballot
-						rp.paxosConsensus.replicatedLog[instanceNumber].highestSeenAcceptedValue = lastAcceptedEntries[j].Value
+						rp.paxosConsensus.replicatedLog[instanceNumber].highestSeenAcceptedValue = *lastAcceptedEntries[j].Value
 					}
 				}
 			}
@@ -445,21 +445,21 @@ func (rp *Replica) sendPropose(requests []*proto.ClientBatch) { // requests can 
 			Sender:   int64(rp.name),
 		}
 		if rp.paxosConsensus.replicatedLog[rp.paxosConsensus.lastProposedLogIndex].highestSeenAcceptedBallot != -1 {
-			proposeValue = rp.paxosConsensus.replicatedLog[rp.paxosConsensus.lastProposedLogIndex].highestSeenAcceptedValue
+			proposeValue = &rp.paxosConsensus.replicatedLog[rp.paxosConsensus.lastProposedLogIndex].highestSeenAcceptedValue
 			rp.incomingRequests = append(rp.incomingRequests, requests...)
 		}
 
 		// set the proposed ballot for this instance
 		rp.paxosConsensus.replicatedLog[rp.paxosConsensus.lastProposedLogIndex].proposedBallot = rp.paxosConsensus.lastPreparedBallot
 		rp.paxosConsensus.replicatedLog[rp.paxosConsensus.lastProposedLogIndex].proposeResponses = 0
-		rp.paxosConsensus.replicatedLog[rp.paxosConsensus.lastProposedLogIndex].proposedValue = proposeValue
+		rp.paxosConsensus.replicatedLog[rp.paxosConsensus.lastProposedLogIndex].proposedValue = *proposeValue
 
 		decided_values := make([]*proto.PaxosConsensusInstance, 0)
 
 		for i := 0; i < len(rp.paxosConsensus.decidedIndexes); i++ {
 			decided_values = append(decided_values, &proto.PaxosConsensusInstance{
 				Number: int32(rp.paxosConsensus.decidedIndexes[i]),
-				Value:  rp.paxosConsensus.replicatedLog[rp.paxosConsensus.decidedIndexes[i]].acceptedValue,
+				Value:  &rp.paxosConsensus.replicatedLog[rp.paxosConsensus.decidedIndexes[i]].acceptedValue,
 			})
 		}
 		// reset decided indexes
@@ -511,7 +511,7 @@ func (rp *Replica) handlePropose(message *proto.PaxosConsensus) {
 		rp.createPaxosInstanceIfMissing(int(message.DecidedValues[i].Number))
 		if !rp.paxosConsensus.replicatedLog[message.DecidedValues[i].Number].decided {
 			rp.paxosConsensus.replicatedLog[message.DecidedValues[i].Number].decided = true
-			rp.paxosConsensus.replicatedLog[message.DecidedValues[i].Number].acceptedValue = message.DecidedValues[i].Value
+			rp.paxosConsensus.replicatedLog[message.DecidedValues[i].Number].acceptedValue = *message.DecidedValues[i].Value
 			rp.debug("decided index "+fmt.Sprintf("%v", message.DecidedValues[i].Number), 7)
 		}
 	}
@@ -535,7 +535,7 @@ func (rp *Replica) handlePropose(message *proto.PaxosConsensus) {
 		}
 
 		rp.paxosConsensus.replicatedLog[message.InstanceNumber].acceptedBallot = message.Ballot
-		rp.paxosConsensus.replicatedLog[message.InstanceNumber].acceptedValue = message.ProposeValue
+		rp.paxosConsensus.replicatedLog[message.InstanceNumber].acceptedValue = *message.ProposeValue
 
 		// send an accept message to the sender
 		acceptMsg := proto.PaxosConsensus{
@@ -586,7 +586,7 @@ func (rp *Replica) handleAccept(message *proto.PaxosConsensus) {
 
 			rp.paxosConsensus.replicatedLog[message.InstanceNumber].decided = true
 			rp.paxosConsensus.replicatedLog[message.InstanceNumber].acceptedValue = rp.paxosConsensus.replicatedLog[message.InstanceNumber].proposedValue
-			rp.paxosConsensus.replicatedLog[message.InstanceNumber].proposedValue = nil
+			rp.paxosConsensus.replicatedLog[message.InstanceNumber].proposedValue = proto.ReplicaBatch{}
 			rp.debug("Decided upon receiving n-f accept message for instance "+strconv.Itoa(int(message.InstanceNumber)), 7)
 			rp.paxosConsensus.decidedIndexes = append(rp.paxosConsensus.decidedIndexes, int(message.InstanceNumber))
 			rp.updatePaxosSMR()
