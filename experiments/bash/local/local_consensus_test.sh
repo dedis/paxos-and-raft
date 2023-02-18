@@ -5,6 +5,7 @@ viewTimeoutTime=$3
 testTime=$4 # seconds
 batchTime=$5
 batchSize=$5
+pipelineLength=$6
 
 replica_path="replica/bin/replica"
 ctl_path="client/bin/client"
@@ -18,9 +19,9 @@ pkill client; pkill client; pkill client
 
 echo "Killed previously running instances"
 
-nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 27 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}1.log &
-nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 27 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}2.log &
-nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 27 --viewTimeout "${viewTimeoutTime}" --pipelineLength 1 >${output_path}3.log &
+nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 27 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}1.log &
+nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 27 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}2.log &
+nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 27 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}3.log &
 
 echo "Started 3 replicas"
 
@@ -62,7 +63,7 @@ python3 experiments/python/overlay-test.py "${testTime}" logs/1-consensus.txt lo
 
 echo "Killed instances"
 
-mkdir -p    /home/pasindu/Desktop/paxos_raft/"${arrivalRate}"/"${algo}"/"${viewTimeoutTime}"/"${testTime}"/"${batchTime}"/"${batchSize}"
-cp -r logs/ /home/pasindu/Desktop/paxos_raft/"${arrivalRate}"/"${algo}"/"${viewTimeoutTime}"/"${testTime}"/"${batchTime}"/"${batchSize}"
+mkdir -p    /home/pasindu/Desktop/paxos_raft/"${arrivalRate}"/"${algo}"/"${viewTimeoutTime}"/"${testTime}"/"${batchTime}"/"${batchSize}"/"${pipelineLength}"
+cp -r logs/ /home/pasindu/Desktop/paxos_raft/"${arrivalRate}"/"${algo}"/"${viewTimeoutTime}"/"${testTime}"/"${batchTime}"/"${batchSize}"/"${pipelineLength}"
 
 echo "Finish test"
