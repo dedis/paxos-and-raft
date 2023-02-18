@@ -17,21 +17,21 @@ for algo in ["paxos", "raft"]:
     # case 1
     arrivalRate=1000
     viewTimeoutTime=3000000
-    batchTime=1
+    batchTime=100
     batchSize=1
     run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize,pipelineLength)
 
     # case 2
     arrivalRate=10000
     viewTimeoutTime=3000000
-    batchTime=50
+    batchTime=2000
     batchSize=50
     run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize,pipelineLength)
 
     # case 3
     arrivalRate=10000
     viewTimeoutTime=30000
-    batchTime=50
+    batchTime=2000
     batchSize=50
     run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize,pipelineLength)
 
@@ -39,21 +39,21 @@ for algo in ["paxos", "raft"]:
     # case 4
     arrivalRate=10000
     viewTimeoutTime=3000
-    batchTime=50
+    batchTime=2000
     batchSize=50
     run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize,pipelineLength)
 
     # case 5
     arrivalRate=10000
     viewTimeoutTime=300
-    batchTime=50
+    batchTime=2000
     batchSize=50
     run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize,pipelineLength)
 
     # case 6
     arrivalRate=5000
     viewTimeoutTime=3000000
-    batchTime=1
+    batchTime=100
     batchSize=1
     pipelineLength=100
     run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize,pipelineLength)
