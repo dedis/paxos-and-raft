@@ -4,8 +4,8 @@ algo=$2
 viewTimeoutTime=$3
 testTime=$4 # seconds
 batchTime=$5
-batchSize=$5
-pipelineLength=$6
+batchSize=$6
+pipelineLength=$7
 
 replica_path="replica/bin/replica"
 ctl_path="client/bin/client"
