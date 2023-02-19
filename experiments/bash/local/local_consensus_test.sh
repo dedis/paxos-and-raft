@@ -50,7 +50,8 @@ sleep 10
 echo "finished running clients"
 
 
-./${ctl_path} --name 11 --requestType status --operationType 2  --debugOn --debugLevel 10 >${output_path}status2.log
+nohup ./${ctl_path} --name 11 --requestType status --operationType 2  --debugOn --debugLevel 10 >${output_path}status2.log &
+
 
 echo "sent status to print logs"
 
