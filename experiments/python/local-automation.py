@@ -5,8 +5,7 @@ pipelineLength = 1
 
 
 def run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize, pipelineLength):
-    os.system("/bin/bash /home/pasindu/Documents/paxos_n_raft/experiments/bash/local/local_consensus_test.sh " + str(
-        arrivalRate) + " "
+    os.system("/bin/bash /home/pasindu/Documents/paxos_n_raft/experiments/bash/local/local_consensus_test.sh " + str(arrivalRate) + " "
               + algo + " "
               + str(viewTimeoutTime) + " "
               + str(testTime) + " "
