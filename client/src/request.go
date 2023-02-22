@@ -67,18 +67,10 @@ func (cl *Client) startRequestGenerators() {
 					numRequests++
 				}
 
-				for i, _ := range cl.replicaAddrList {
-
-					var requests_i []*proto.SingleOperation
-
-					for j := 0; j < len(requests); j++ {
-						requests_i = append(requests_i, requests[j])
-					}
-
-					// create a new client batch
+				if cl.useFixedLeader {
 					batch := proto.ClientBatch{
 						UniqueId: strconv.Itoa(int(cl.clientName)) + "." + strconv.Itoa(threadNumber) + "." + strconv.Itoa(localCounter), // this is a unique string id,
-						Requests: requests_i,
+						Requests: requests,
 						Sender:   int64(cl.clientName),
 					}
 					cl.debug("Sending "+strconv.Itoa(int(cl.clientName))+"."+strconv.Itoa(threadNumber)+"."+strconv.Itoa(localCounter)+" batch size "+strconv.Itoa(len(requests)), 0)
@@ -88,7 +80,32 @@ func (cl *Client) startRequestGenerators() {
 						Obj:  &batch,
 					}
 
-					cl.sendMessage(i, rpcPair)
+					cl.sendMessage(cl.fixedLeader, rpcPair)
+				} else {
+
+					for i, _ := range cl.replicaAddrList {
+
+						var requests_i []*proto.SingleOperation
+
+						for j := 0; j < len(requests); j++ {
+							requests_i = append(requests_i, requests[j])
+						}
+
+						// create a new client batch
+						batch := proto.ClientBatch{
+							UniqueId: strconv.Itoa(int(cl.clientName)) + "." + strconv.Itoa(threadNumber) + "." + strconv.Itoa(localCounter), // this is a unique string id,
+							Requests: requests_i,
+							Sender:   int64(cl.clientName),
+						}
+						cl.debug("Sending "+strconv.Itoa(int(cl.clientName))+"."+strconv.Itoa(threadNumber)+"."+strconv.Itoa(localCounter)+" batch size "+strconv.Itoa(len(requests)), 0)
+
+						rpcPair := common.RPCPair{
+							Code: cl.messageCodes.ClientBatchRpc,
+							Obj:  &batch,
+						}
+
+						cl.sendMessage(i, rpcPair)
+					}
 				}
 
 				//if time.Now().Sub(cl.lastSeenTimeLeader).Microseconds() > int64(cl.leaderTimeout) {

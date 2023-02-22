@@ -37,15 +37,13 @@ type Client struct {
 
 	outgoingMessageChan chan *common.OutgoingRPC // buffer for messages that are written to the wire
 
-	defaultReplica int32 // id of the default replica to which the client sends the request batches
-
 	debugOn    bool // if turned on, the debug messages will be printed on the console
 	debugLevel int  // current debug level
 
 	testDuration  int // test duration in seconds
 	arrivalRate   int // poisson rate of the arrivals (requests per second)
 	leaderTimeout int // leader timeout
-	
+
 	arrivalTimeChan     chan int64              // channel to which the poisson process adds new request arrival times in nanoseconds w.r.t test start time
 	arrivalChan         chan bool               // channel to which the main scheduler adds new request indications, to be consumed by the request generation threads
 	RequestType         string                  // [request] for sending a stream of client requests, [status] for sending a status request
@@ -56,6 +54,9 @@ type Client struct {
 	clientListenAddress string                  // TCP address to which the client listens to new incoming TCP connections
 	keyLen              int                     // length of key
 	valueLen            int                     // length of value
+
+	useFixedLeader bool
+	fixedLeader    int32
 }
 
 /*
@@ -78,7 +79,7 @@ const arrivalBufferSize = 1000000     // size of the buffer that collects new re
 	Instantiate a new Client instance, allocate the buffers
 */
 
-func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clientBatchSize int, clientBatchTime int, defaultReplica int32, testDuration int, arrivalRate int, requestType string, operationType int, debugOn bool, debugLevel int, keyLen int, valLen int, leaderTimeout int) *Client {
+func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clientBatchSize int, clientBatchTime int, testDuration int, arrivalRate int, requestType string, operationType int, debugOn bool, debugLevel int, keyLen int, valLen int, leaderTimeout int, useFixedLeader bool, fixedLeader int) *Client {
 	cl := Client{
 		clientName:                  name,
 		numReplicas:                 len(cfg.Peers),
@@ -93,8 +94,6 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 		clientBatchSize:             clientBatchSize,
 		clientBatchTime:             clientBatchTime,
 		outgoingMessageChan:         make(chan *common.OutgoingRPC, outgoingBufferSize),
-
-		defaultReplica: defaultReplica,
 
 		debugOn:    debugOn,
 		debugLevel: debugLevel,
@@ -113,6 +112,8 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 		clientListenAddress: common.GetAddress(cfg.Clients, name),
 		keyLen:              keyLen,
 		valueLen:            valLen,
+		useFixedLeader:      useFixedLeader,
+		fixedLeader:         int32(fixedLeader),
 	}
 
 	cl.debug("Created a new client instance", 0)
