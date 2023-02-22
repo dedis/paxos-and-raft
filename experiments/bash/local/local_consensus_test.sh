@@ -41,9 +41,9 @@ echo "sent consensus start up status"
 
 echo "starting clients"
 
-nohup ./${ctl_path} --name 11 --requestType request --defaultReplica 2  --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}11.log &
-nohup ./${ctl_path} --name 12 --requestType request --defaultReplica 2  --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}12.log &
-./${ctl_path}       --name 13 --requestType request --defaultReplica 2  --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}13.log
+nohup ./${ctl_path} --name 11 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}11.log &
+nohup ./${ctl_path} --name 12 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}12.log &
+./${ctl_path}       --name 13 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}13.log
 
 sleep 10
 
