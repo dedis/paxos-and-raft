@@ -19,9 +19,9 @@ pkill client; pkill client; pkill client
 
 echo "Killed previously running instances"
 
-nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 27 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}1.log &
-nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 27 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}2.log &
-nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 27 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}3.log &
+nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 97 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}1.log &
+nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 97 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}2.log &
+nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 97 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}3.log &
 
 echo "Started 3 replicas"
 
@@ -41,9 +41,9 @@ echo "sent consensus start up status"
 
 echo "starting clients"
 
-nohup ./${ctl_path} --name 11 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}11.log &
-nohup ./${ctl_path} --name 12 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}12.log &
-./${ctl_path}       --name 13 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}13.log
+#nohup ./${ctl_path} --name 11 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}11.log &
+#nohup ./${ctl_path} --name 12 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}12.log &
+./${ctl_path}       --name 13 --requestType request --debugOn --debugLevel 6 --batchSize  50 --batchTime 1000 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}13.log
 
 sleep 10
 
