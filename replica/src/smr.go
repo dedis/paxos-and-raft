@@ -1,7 +1,6 @@
 package src
 
 import (
-	"fmt"
 	"paxos_raft/common"
 	"paxos_raft/proto"
 	"strconv"
@@ -58,7 +57,7 @@ func (rp *Replica) sendClientResponses(responses []*proto.ClientBatch) {
 			Code: rp.messageCodes.ClientBatchRpc,
 			Obj:  responses[i],
 		})
-		rp.debug("send client response to "+fmt.Sprintf("%v", responses[i].Sender), 0)
+		//rp.debug("send client response to "+fmt.Sprintf("%v", responses[i].Sender), 0)
 	}
 }
 

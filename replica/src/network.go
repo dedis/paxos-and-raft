@@ -73,21 +73,21 @@ func (rp *Replica) connectionListener(reader *bufio.Reader, id int32) {
 	for true {
 
 		if msgType, err = reader.ReadByte(); err != nil {
-			rp.debug("Error while reading message code: connection broken from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err), 0)
+			//rp.debug("Error while reading message code: connection broken from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err), 0)
 			return
 		}
 
 		if rpair, present := rp.rpcTable[msgType]; present {
 			obj := rpair.Obj.New()
 			if err = obj.Unmarshal(reader); err != nil {
-				rp.debug("Error while unmarshalling from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err), 0)
+				//rp.debug("Error while unmarshalling from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err), 0)
 				return
 			}
 			rp.incomingChan <- &common.RPCPair{
 				Code: msgType,
 				Obj:  obj,
 			}
-			rp.debug("Pushed a message from "+strconv.Itoa(int(id)), 0)
+			//rp.debug("Pushed a message from "+strconv.Itoa(int(id)), 0)
 
 		} else {
 			rp.debug("Error received unknown message type from "+strconv.Itoa(int(id)), 0)
@@ -151,19 +151,19 @@ func (rp *Replica) Run() {
 
 			case rp.messageCodes.StatusRPC:
 				statusMessage := replicaMessage.Obj.(*proto.Status)
-				rp.debug("Status message from "+fmt.Sprintf("%#v", statusMessage.Sender), 0)
+				//rp.debug("Status message from "+fmt.Sprintf("%#v", statusMessage.Sender), 0)
 				rp.handleStatus(statusMessage)
 				break
 
 			case rp.messageCodes.ClientBatchRpc:
 				clientBatch := replicaMessage.Obj.(*proto.ClientBatch)
-				rp.debug("Client batch message from "+fmt.Sprintf("%#v", clientBatch.Sender), 0)
+				//rp.debug("Client batch message from "+fmt.Sprintf("%#v", clientBatch.Sender), 0)
 				rp.handleClientBatch(clientBatch)
 				break
 
 			case rp.messageCodes.PaxosConsensus:
 				paxosConsensusMessage := replicaMessage.Obj.(*proto.PaxosConsensus)
-				rp.debug("Paxos consensus message from "+fmt.Sprintf("%#v", paxosConsensusMessage.Sender), 0)
+				//rp.debug("Paxos consensus message from "+fmt.Sprintf("%#v", paxosConsensusMessage.Sender), 0)
 				rp.handlePaxosConsensus(paxosConsensusMessage)
 				break
 

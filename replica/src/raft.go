@@ -259,12 +259,12 @@ func (in *Raft) RequestVote(ctx context.Context, req *proto.LeaderRequest) (*pro
 			in.state = "F"
 			leaderResponse.Term = req.Term
 			leaderResponse.VoteGranted = true
-			in.debug("leader for term "+fmt.Sprintf(" %v is %v", in.currentTerm, req.CandidateId), 7)
+			//in.debug("leader for term "+fmt.Sprintf(" %v is %v", in.currentTerm, req.CandidateId), 7)
 
 		} else {
 			leaderResponse.Term = currentTerm
 			leaderResponse.VoteGranted = false
-			in.debug("request vote failed due to log mismatch", 7)
+			//in.debug("request vote failed due to log mismatch", 7)
 		}
 	}
 
@@ -393,11 +393,11 @@ func (in *Raft) requestVote() bool {
 
 			if err != nil {
 				responses <- &response{term: -1, voteGranted: false}
-				in.debug("request vote failed with"+fmt.Sprintf("%v", err), 0)
+				//in.debug("request vote failed with"+fmt.Sprintf("%v", err), 0)
 				return
 			} else {
 				responses <- &response{term: resp.Term, voteGranted: resp.VoteGranted}
-				in.debug("request vote received "+fmt.Sprintf("%v", resp), 0)
+				//in.debug("request vote received "+fmt.Sprintf("%v", resp), 0)
 				return
 			}
 		}(p)
@@ -487,7 +487,7 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 	}
 
 	responses := make(chan *response, in.numNodes-1)
-	in.debug("invoking append entry for index "+fmt.Sprintf("%v", lastIndex), 7)
+	//in.debug("invoking append entry for index "+fmt.Sprintf("%v", lastIndex), 7)
 	in.centralMutex.Unlock()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(10)*time.Second)
 	cancelled := false
@@ -523,7 +523,7 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 
 			if err != nil {
 				responses <- &response{success: false, term: -1}
-				in.debug("append entry failed with"+fmt.Sprintf("%v", err), 0)
+				//in.debug("append entry failed with"+fmt.Sprintf("%v", err), 0)
 				return
 			} else {
 				respTerm := resp.Term
@@ -531,14 +531,14 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 
 				if respSuccess {
 					responses <- &response{success: true, term: respTerm}
-					in.debug("append entry rpc succeeded"+fmt.Sprintf("%v", respSuccess), 0)
+					//in.debug("append entry rpc succeeded"+fmt.Sprintf("%v", respSuccess), 0)
 					return
 				} else if respTerm > termLocal {
 					responses <- &response{success: false, term: respTerm}
-					in.debug("append entry rpc failed with higher term"+fmt.Sprintf("%v", respTerm), 0)
+					//in.debug("append entry rpc failed with higher term"+fmt.Sprintf("%v", respTerm), 0)
 					return
 				} else if !respSuccess && respTerm <= termLocal {
-					in.debug("append entry rpc failed with previous index mismatch"+fmt.Sprintf(""), 0)
+					//in.debug("append entry rpc failed with previous index mismatch"+fmt.Sprintf(""), 0)
 					// retry
 					if prevLogIndexLocal >= 1 {
 						prevLogIndexLocal--
@@ -592,7 +592,7 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 					clientResponses = nil
 				} else if int64(yea) == in.numNodes/2+1 {
 					// decide
-					in.debug("append entry succeeded for index "+fmt.Sprintf("%v", len(in.log)-1), 7)
+					//in.debug("append entry succeeded for index "+fmt.Sprintf("%v", len(in.log)-1), 7)
 					in.centralMutex.Lock()
 					clientResponses = in.updateRaftSMR((len(in.log)) - 1)
 					in.centralMutex.Unlock()
@@ -619,7 +619,7 @@ func (in *Raft) startViewTimeoutChecker(cancel chan bool) {
 				lastSeenTimeLeader := in.lastSeenTimeLeader
 
 				if time.Now().Sub(lastSeenTimeLeader).Microseconds() > in.viewTimeOut {
-					in.debug("timeout!"+fmt.Sprintf(""), 7)
+					//in.debug("timeout!"+fmt.Sprintf(""), 7)
 					in.centralMutex.Lock()
 					in.state = "C"
 					in.currentTerm++
@@ -630,7 +630,7 @@ func (in *Raft) startViewTimeoutChecker(cancel chan bool) {
 						in.state = "L"
 						in.lastSeenTimeLeader = time.Now()
 					} else {
-						in.debug("leader election failed"+fmt.Sprintf(""), 7)
+						//in.debug("leader election failed"+fmt.Sprintf(""), 7)
 						in.state = "F"
 					}
 					in.centralMutex.Unlock()
@@ -648,7 +648,7 @@ func (in *Raft) updateRaftSMR(commitIndex int) []*proto.ClientBatch {
 	for commitIndex > int(in.commitIndex) {
 		in.log[in.commitIndex+1].decided = true
 		responses = append(responses, in.replica.updateApplicationLogic(in.log[in.commitIndex+1].commands.Requests)...)
-		in.debug("committed index "+fmt.Sprintf("%v", in.commitIndex+1), 7)
+		//in.debug("committed index "+fmt.Sprintf("%v", in.commitIndex+1), 7)
 		in.commitIndex++
 	}
 	return responses
