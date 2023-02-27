@@ -17,14 +17,14 @@ def run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize, pipelineLength
 for algo in ["paxos", "raft"]:
     # case 1
     arrivalRate = 1000
-    viewTimeoutTime = 3000000
+    viewTimeoutTime = 3000000000
     batchTime = 100
     batchSize = 1
     run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize, pipelineLength)
 
     # case 2
     arrivalRate = 10000
-    viewTimeoutTime = 3000000
+    viewTimeoutTime = 3000000000
     batchTime = 2000
     batchSize = 50
     run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize, pipelineLength)
@@ -53,7 +53,7 @@ for algo in ["paxos", "raft"]:
     # case 6
     arrivalRate = 5000
     viewTimeoutTime = 3000000
-    batchTime = 100
-    batchSize = 1
-    pipelineLength = 100
+    batchTime = 2000
+    batchSize = 50
+    pipelineLength = 10
     run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize, pipelineLength)
