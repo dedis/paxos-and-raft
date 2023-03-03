@@ -615,9 +615,9 @@ func (in *Raft) startViewTimeoutChecker(cancel chan bool) {
 				return
 			default:
 				time.Sleep(time.Duration(in.viewTimeOut+int64(rand.Intn(int(in.viewTimeOut)))) * time.Microsecond)
-
+				in.centralMutex.Lock()
 				lastSeenTimeLeader := in.lastSeenTimeLeader
-
+				in.centralMutex.Unlock()
 				if time.Now().Sub(lastSeenTimeLeader).Microseconds() > in.viewTimeOut {
 					//in.debug("timeout!"+fmt.Sprintf(""), 7)
 					in.centralMutex.Lock()
