@@ -495,7 +495,7 @@ func (rp *Replica) sendPropose(requests []*proto.ClientBatch) { // requests can 
 		rp.incomingRequests = append(rp.incomingRequests, requests...)
 		rp.debug("saving for later proposal due to full pipeline while I am the leader "+" in view "+strconv.Itoa(int(rp.paxosConsensus.view)), 0)
 	} else {
-		rp.debug("dropping requests because i am not the leader "+" in view "+strconv.Itoa(int(rp.paxosConsensus.view)), 0)
+		rp.incomingRequests = append(rp.incomingRequests, requests...)
 	}
 }
 
@@ -621,6 +621,7 @@ func (rp *Replica) updatePaxosSMR() {
 			if rp.paxosConsensus.replicatedLog[i].acceptedValue.Sender == int64(rp.name) {
 				rp.sendClientResponses(cllientResponses)
 			}
+			rp.removeDecidedItemsFromFutureProposals(rp.paxosConsensus.replicatedLog[i].acceptedValue.Requests)
 			//rp.debug("Committed paxos consensus instance "+"."+strconv.Itoa(int(i))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 7)
 			rp.paxosConsensus.lastCommittedLogIndex = i
 			rp.paxosConsensus.lastCommittedTime = time.Now()

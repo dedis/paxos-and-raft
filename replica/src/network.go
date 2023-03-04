@@ -172,6 +172,12 @@ func (rp *Replica) Run() {
 		case clientRespBatches := <-rp.requestsOut:
 			rp.sendClientResponses(clientRespBatches)
 			break
+		case requests := <-rp.raftAddAgain:
+			rp.addRequestsBackToIncomingBuffer(requests)
+			break
+		case requests := <-rp.raftRemoveFrom:
+			rp.removeDecidedItemsFromFutureProposals(requests)
+			break
 		default:
 			// message dropped
 			break

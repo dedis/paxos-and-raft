@@ -40,6 +40,30 @@ func (rp *Replica) handleClientBatch(batch *proto.ClientBatch) {
 
 }
 
+// add the client batches back to the incomingRequests
+
+func (rp *Replica) addRequestsBackToIncomingBuffer(requests []*proto.ClientBatch) {
+	rp.incomingRequests = append(rp.incomingRequests, requests...)
+}
+
+// for each item in the list, if it is found in the incomingRequests, then delete it
+
+func (rp *Replica) removeDecidedItemsFromFutureProposals(items []*proto.ClientBatch) {
+	for i := 0; i < len(items); i++ {
+		position := -1
+		for j := 0; j < len(rp.incomingRequests); j++ {
+			if items[i].UniqueId == rp.incomingRequests[j].UniqueId {
+				position = j
+				break
+			}
+		}
+		if position != -1 {
+			rp.incomingRequests[position] = rp.incomingRequests[len(rp.incomingRequests)-1]
+			rp.incomingRequests = rp.incomingRequests[:len(rp.incomingRequests)-1]
+		}
+	}
+}
+
 // call the state machine
 
 func (rp *Replica) updateApplicationLogic(requests []*proto.ClientBatch) []*proto.ClientBatch {

@@ -68,8 +68,10 @@ type Replica struct {
 
 	lastProposedTime time.Time
 
-	requestsIn  chan []*proto.ClientBatch
-	requestsOut chan []*proto.ClientBatch // for raft client responses
+	requestsIn     chan []*proto.ClientBatch
+	requestsOut    chan []*proto.ClientBatch // for raft client responses
+	raftAddAgain   chan []*proto.ClientBatch // for raft client responses
+	raftRemoveFrom chan []*proto.ClientBatch // for raft client responses
 
 	cancel chan bool // to cancel the dummy client requests and the raft failure detector
 }
@@ -122,6 +124,8 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		pipelineLength:      pipelineLength,
 		requestsIn:          make(chan []*proto.ClientBatch, incomingBufferSize),
 		requestsOut:         make(chan []*proto.ClientBatch, incomingBufferSize),
+		raftAddAgain:        make(chan []*proto.ClientBatch, incomingBufferSize),
+		raftRemoveFrom:      make(chan []*proto.ClientBatch, incomingBufferSize),
 		cancel:              make(chan bool, 7),
 	}
 

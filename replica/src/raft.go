@@ -190,6 +190,8 @@ func (in *Raft) proposeBatch() {
 			if clientResponses != nil {
 				in.debug("sent back 1 batch of client responses", 5)
 				in.requestsOut <- clientResponses
+			} else {
+				in.replica.raftAddAgain <- requests
 			}
 		}
 	}()
@@ -649,6 +651,7 @@ func (in *Raft) updateRaftSMR(commitIndex int) []*proto.ClientBatch {
 		in.log[in.commitIndex+1].decided = true
 		responses = append(responses, in.replica.updateApplicationLogic(in.log[in.commitIndex+1].commands.Requests)...)
 		//in.debug("committed index "+fmt.Sprintf("%v", in.commitIndex+1), 7)
+		in.replica.raftRemoveFrom <- in.log[in.commitIndex+1].commands.Requests
 		in.commitIndex++
 	}
 	return responses
