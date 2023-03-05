@@ -62,16 +62,16 @@ func (cl *Client) computeStats() {
 		panic("Error creating the output log file")
 	}
 	defer f.Close()
-
+	responsesCopy := cl.receivedResponses
 	numTotalSentRequests := cl.getNumberOfSentRequests(cl.sentRequests)
-	numTotalReceivedResponses := cl.getNumberOfReceivedResponses(cl.receivedResponses)
+	numTotalReceivedResponses := cl.getNumberOfReceivedResponses(responsesCopy)
 	var latencyList []int64 // contains the time duration spent requests in micro seconds
 	for i := 0; i < numRequestGenerationThreads; i++ {
 		fmt.Printf("Calculating stats for thread %d \n", i)
 		for j := 0; j < len(cl.sentRequests[i]); j++ {
 			batch := cl.sentRequests[i][j]
 			batchId := batch.batch.UniqueId
-			matchingResponseBatch, ok := cl.receivedResponses[batchId]
+			matchingResponseBatch, ok := responsesCopy[batchId]
 			if ok {
 				responseBatch := matchingResponseBatch
 				startTime := batch.time
