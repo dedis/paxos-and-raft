@@ -62,7 +62,13 @@ func (cl *Client) computeStats() {
 		panic("Error creating the output log file")
 	}
 	defer f.Close()
-	responsesCopy := cl.receivedResponses
+
+	// copy a map
+	responsesCopy := make(map[string]requestBatch)
+	for k, v := range cl.receivedResponses {
+		responsesCopy[k] = v
+	}
+
 	numTotalSentRequests := cl.getNumberOfSentRequests(cl.sentRequests)
 	numTotalReceivedResponses := cl.getNumberOfReceivedResponses(responsesCopy)
 	var latencyList []int64 // contains the time duration spent requests in micro seconds
