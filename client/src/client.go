@@ -57,6 +57,7 @@ type Client struct {
 
 	useFixedLeader bool
 	fixedLeader    int32
+	finished       bool
 }
 
 /*
@@ -114,6 +115,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 		valueLen:            valLen,
 		useFixedLeader:      useFixedLeader,
 		fixedLeader:         int32(fixedLeader),
+		finished:            false,
 	}
 
 	cl.debug("Created a new client instance", 0)

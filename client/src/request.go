@@ -16,6 +16,9 @@ import (
 */
 
 func (cl *Client) handleClientResponseBatch(batch *proto.ClientBatch) {
+	if cl.finished {
+		return
+	}
 	cl.receivedResponses[batch.UniqueId] = requestBatch{
 		batch: *batch,
 		time:  time.Now(), // record the time when the response was received
@@ -41,6 +44,7 @@ func (cl *Client) SendRequests() {
 
 	time.Sleep(time.Duration(cl.testDuration*2) * time.Second) // additional sleep duration to make sure that all the in-flight responses are received
 	fmt.Printf("Finish sending requests \n")
+	cl.finished = true
 	cl.computeStats()
 }
 

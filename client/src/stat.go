@@ -63,21 +63,15 @@ func (cl *Client) computeStats() {
 	}
 	defer f.Close()
 
-	// copy a map
-	responsesCopy := make(map[string]requestBatch)
-	for k, v := range cl.receivedResponses {
-		responsesCopy[k] = v
-	}
-
 	numTotalSentRequests := cl.getNumberOfSentRequests(cl.sentRequests)
-	numTotalReceivedResponses := cl.getNumberOfReceivedResponses(responsesCopy)
+	numTotalReceivedResponses := cl.getNumberOfReceivedResponses(cl.receivedResponses)
 	var latencyList []int64 // contains the time duration spent requests in micro seconds
 	for i := 0; i < numRequestGenerationThreads; i++ {
 		fmt.Printf("Calculating stats for thread %d \n", i)
 		for j := 0; j < len(cl.sentRequests[i]); j++ {
 			batch := cl.sentRequests[i][j]
 			batchId := batch.batch.UniqueId
-			matchingResponseBatch, ok := responsesCopy[batchId]
+			matchingResponseBatch, ok := cl.receivedResponses[batchId]
 			if ok {
 				responseBatch := matchingResponseBatch
 				startTime := batch.time
