@@ -29,7 +29,7 @@ func (rp *Replica) handleClientBatch(batch *proto.ClientBatch) {
 				// message sent
 				break
 			default:
-				// message dropped
+				rp.incomingRequests = append(rp.incomingRequests, proposals...)
 				break
 			}
 		}
