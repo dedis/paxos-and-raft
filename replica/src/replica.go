@@ -120,7 +120,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		state:               benchmark.Init(benchmarkMode, name, keyLen, valLen),
 		incomingRequests:    make([]*proto.ClientBatch, 0),
 		pipelineLength:      pipelineLength,
-		requestsIn:          make(chan []*proto.ClientBatch, incomingBufferSize),
+		requestsIn:          make(chan []*proto.ClientBatch),
 		requestsOut:         make(chan []*proto.ClientBatch, incomingBufferSize),
 		cancel:              make(chan bool, 7),
 	}
