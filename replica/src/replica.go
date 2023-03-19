@@ -3,6 +3,7 @@ package src
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"os"
 	"paxos_raft/benchmark"
 	"paxos_raft/common"
@@ -124,7 +125,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		requestsOut:         make(chan []*proto.ClientBatch, incomingBufferSize),
 		cancel:              make(chan bool, 7),
 	}
-
+	rand.Seed(time.Now().UnixNano() + int64(rp.name))
 	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers), name, &rp, pipelineLength)
 
 	// initialize clientAddrList

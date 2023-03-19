@@ -609,6 +609,8 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 
 func (in *Raft) startViewTimeoutChecker(cancel chan bool) {
 	go func() {
+		rand.Seed(time.Now().UnixNano() + int64(in.id))
+
 		for {
 			select {
 			case _ = <-cancel:
