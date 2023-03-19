@@ -601,7 +601,7 @@ func (rp *Replica) handleAccept(message *proto.PaxosConsensus) {
 func (rp *Replica) handlePaxosInternalTimeout(message *proto.PaxosConsensus) {
 	//rp.debug("Received a timeout for view "+strconv.Itoa(int(message.View))+" while my view is "+strconv.Itoa(int(rp.paxosConsensus.view))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 5)
 	// check if the view timeout is still valid
-	if rp.paxosConsensus.view == message.View {
+	if rp.paxosConsensus.view == message.View && rp.paxosConsensus.state != "L" {
 		//rp.debug("Accepted a timeout for view "+strconv.Itoa(int(message.View))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
 		rp.sendPrepare()
 	}
