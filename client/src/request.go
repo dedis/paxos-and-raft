@@ -112,22 +112,6 @@ func (cl *Client) startRequestGenerators() {
 					}
 				}
 
-				//if time.Now().Sub(cl.lastSeenTimeLeader).Microseconds() > int64(cl.leaderTimeout) {
-				//	found := false
-				//	for !found {
-				//		defaultReplica := int32(-1)
-				//		for name, _ := range cl.replicaAddrList {
-				//			defaultReplica = name
-				//			break
-				//		}
-				//
-				//		if cl.defaultReplica != defaultReplica {
-				//			cl.defaultReplica = defaultReplica
-				//			cl.debug("changed leader to "+strconv.Itoa(int(cl.defaultReplica)), 6)
-				//			found = true
-				//		}
-				//	}
-				//}
 				batch := proto.ClientBatch{
 					UniqueId: strconv.Itoa(int(cl.clientName)) + "." + strconv.Itoa(threadNumber) + "." + strconv.Itoa(localCounter), // this is a unique string id,
 					Requests: requests,

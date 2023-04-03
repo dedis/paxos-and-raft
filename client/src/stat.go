@@ -8,6 +8,8 @@ import (
 	"strconv"
 )
 
+const CLIENT_TIMEOUT = 2000000
+
 /*
 calculate the number of elements in the 2d array
 */
@@ -66,6 +68,7 @@ func (cl *Client) computeStats() {
 	numTotalSentRequests := cl.getNumberOfSentRequests(cl.sentRequests)
 	numTotalReceivedResponses := cl.getNumberOfReceivedResponses(cl.receivedResponses)
 	var latencyList []int64 // contains the time duration spent requests in micro seconds
+	responses := 0
 	for i := 0; i < numRequestGenerationThreads; i++ {
 		fmt.Printf("Calculating stats for thread %d \n", i)
 		for j := 0; j < len(cl.sentRequests[i]); j++ {
@@ -78,8 +81,13 @@ func (cl *Client) computeStats() {
 				endTime := responseBatch.time
 				batchLatency := endTime.Sub(startTime).Microseconds()
 				latencyList = cl.addValueNToArrayMTimes(latencyList, batchLatency, len(batch.batch.Requests))
-				cl.printRequests(batch.batch, batch.time.Sub(cl.startTime).Microseconds(), endTime.Sub(cl.startTime).Microseconds(), f)
-
+				cl.printRequests(batch.batch, startTime.Sub(cl.startTime).Microseconds(), endTime.Sub(cl.startTime).Microseconds(), f)
+				responses += len(batch.batch.Requests)
+			} else {
+				startTime := batch.time
+				batchLatency := CLIENT_TIMEOUT
+				latencyList = cl.addValueNToArrayMTimes(latencyList, int64(batchLatency), len(batch.batch.Requests))
+				cl.printRequests(batch.batch, startTime.Sub(cl.startTime).Microseconds(), startTime.Sub(cl.startTime).Microseconds()+CLIENT_TIMEOUT, f)
 			}
 
 		}
@@ -91,7 +99,7 @@ func (cl *Client) computeStats() {
 	errorRate := (numTotalSentRequests - numTotalReceivedResponses) * 100.0 / numTotalSentRequests
 
 	fmt.Printf("Total time := %v seconds\n", duration)
-	fmt.Printf("Throughput (successfully committed requests) := %v requests per second\n", len(latencyList)/int(duration))
+	fmt.Printf("Throughput (successfully committed requests) := %v requests per second\n", responses/int(duration))
 	fmt.Printf("Median Latency := %v micro seconds per request\n", medianLatency)
 	fmt.Printf("99 pecentile latency := %v micro seconds per request\n", percentile99)
 	fmt.Printf("Error Rate := %v \n", float64(errorRate))
