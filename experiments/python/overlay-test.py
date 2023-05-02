@@ -1,6 +1,6 @@
 import sys
 
-time = float(sys.argv[1])
+time = 60
 files = []
 for i in range(2, len(sys.argv)):
     dict = {}

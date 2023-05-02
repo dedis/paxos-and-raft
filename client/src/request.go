@@ -24,7 +24,7 @@ func (cl *Client) handleClientResponseBatch(batch *proto.ClientBatch) {
 		time:  time.Now(), // record the time when the response was received
 	}
 	cl.numReceivedBatches++
-	//cl.debug("Added response Batch "+fmt.Sprintf(" %v ", batch), 0)
+	cl.debug("Added response Batch with id "+batch.UniqueId, 0)
 	//cl.lastSeenTimeLeader = time.Now()
 
 }

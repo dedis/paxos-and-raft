@@ -172,9 +172,6 @@ func (rp *Replica) Run() {
 		case clientRespBatches := <-rp.requestsOut:
 			rp.sendClientResponses(clientRespBatches)
 			break
-		default:
-			// message dropped
-			break
 		}
 
 	}

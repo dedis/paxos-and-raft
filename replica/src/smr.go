@@ -57,7 +57,7 @@ func (rp *Replica) sendClientResponses(responses []*proto.ClientBatch) {
 			Code: rp.messageCodes.ClientBatchRpc,
 			Obj:  responses[i],
 		})
-		//rp.debug("send client response to "+fmt.Sprintf("%v", responses[i].Sender), 0)
+		rp.debug("send client response to "+strconv.Itoa(int(responses[i].Sender)), 0)
 	}
 }
 
