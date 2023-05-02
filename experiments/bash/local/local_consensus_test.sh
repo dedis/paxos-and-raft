@@ -1,4 +1,3 @@
-# A local test that tests the consensus layer by sending client requests and printing the consensus logs while simulating asynchrony using SIGSTOP and SIGCONT
 arrivalRate=$1
 algo=$2
 viewTimeoutTime=$3
@@ -19,11 +18,11 @@ pkill client; pkill client; pkill client
 
 echo "Killed previously running instances"
 
-nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 0 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}1.log &
-nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 0 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}2.log &
-nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 0 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}3.log &
-nohup ./${replica_path} --name 4 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 0 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}4.log &
-nohup ./${replica_path} --name 5 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 0 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}5.log &
+nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}1.log &
+nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}2.log &
+nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}3.log &
+nohup ./${replica_path} --name 4 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}4.log &
+nohup ./${replica_path} --name 5 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}5.log &
 
 echo "Started 3 replicas"
 
@@ -43,11 +42,11 @@ echo "sent consensus start up status"
 
 echo "starting clients"
 
-nohup ./${ctl_path} --name 11 --requestType request --debugOn --debugLevel 0 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}11.log &
-nohup ./${ctl_path} --name 12 --requestType request --debugOn --debugLevel 0 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}12.log &
-nohup ./${ctl_path} --name 13 --requestType request --debugOn --debugLevel 0 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}13.log &
-nohup ./${ctl_path} --name 14 --requestType request --debugOn --debugLevel 0 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}14.log &
-nohup ./${ctl_path} --name 15 --requestType request --debugOn --debugLevel 0 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}15.log &
+nohup ./${ctl_path} --name 11 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}11.log &
+nohup ./${ctl_path} --name 12 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}12.log &
+nohup ./${ctl_path} --name 13 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}13.log &
+nohup ./${ctl_path} --name 14 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}14.log &
+nohup ./${ctl_path} --name 15 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}15.log &
 
 sleep 100
 
