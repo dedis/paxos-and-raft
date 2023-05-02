@@ -10,6 +10,12 @@ peers:
   - name: 3
     address: 0.0.0.0:10002
     gaddress: 0.0.0.0:12002
+  - name: 4
+    address: 0.0.0.0:10003
+    gaddress: 0.0.0.0:12003
+  - name: 5
+    address: 0.0.0.0:10004
+    gaddress: 0.0.0.0:12004
 clients:
   - name: 11
     address: 0.0.0.0:11000
@@ -20,3 +26,9 @@ clients:
   - name: 13
     address: 0.0.0.0:11002
     gaddress: 0.0.0.0:14002
+  - name: 14
+    address: 0.0.0.0:11003
+    gaddress: 0.0.0.0:14003
+  - name: 15
+    address: 0.0.0.0:11004
+    gaddress: 0.0.0.0:14004

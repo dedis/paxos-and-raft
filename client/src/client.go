@@ -40,9 +40,8 @@ type Client struct {
 	debugOn    bool // if turned on, the debug messages will be printed on the console
 	debugLevel int  // current debug level
 
-	testDuration  int // test duration in seconds
-	arrivalRate   int // poisson rate of the arrivals (requests per second)
-	leaderTimeout int // leader timeout
+	testDuration int // test duration in seconds
+	arrivalRate  int // poisson rate of the arrivals (requests per second)
 
 	arrivalTimeChan     chan int64              // channel to which the poisson process adds new request arrival times in nanoseconds w.r.t test start time
 	arrivalChan         chan bool               // channel to which the main scheduler adds new request indications, to be consumed by the request generation threads
@@ -81,7 +80,7 @@ const arrivalBufferSize = 1000000     // size of the buffer that collects new re
 	Instantiate a new Client instance, allocate the buffers
 */
 
-func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clientBatchSize int, clientBatchTime int, testDuration int, arrivalRate int, requestType string, operationType int, debugOn bool, debugLevel int, keyLen int, valLen int, leaderTimeout int, window int64) *Client {
+func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clientBatchSize int, clientBatchTime int, testDuration int, arrivalRate int, requestType string, operationType int, debugOn bool, debugLevel int, keyLen int, valLen int, window int64) *Client {
 	cl := Client{
 		clientName:                  name,
 		numReplicas:                 len(cfg.Peers),
@@ -100,10 +99,8 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 		debugOn:    debugOn,
 		debugLevel: debugLevel,
 
-		testDuration:  testDuration,
-		arrivalRate:   arrivalRate,
-		leaderTimeout: leaderTimeout,
-
+		testDuration:        testDuration,
+		arrivalRate:         arrivalRate,
 		arrivalTimeChan:     make(chan int64, arrivalBufferSize),
 		arrivalChan:         make(chan bool, arrivalBufferSize),
 		RequestType:         requestType,

@@ -21,7 +21,6 @@ func main() {
 	debugLevel := flag.Int("debugLevel", -1, "debug level int")
 	keyLen := flag.Int("keyLen", 8, "key length")
 	valLen := flag.Int("valLen", 8, "value length")
-	leaderTimeout := flag.Int("leaderTimeout", 200000, "leader timeout in micro seconds")
 	window := flag.Int64("window", 1000, "number of out standing requests")
 
 	flag.Parse()
@@ -31,7 +30,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	cl := src.New(int32(*name), cfg, *logFilePath, *batchSize, *batchTime, *testDuration, *arrivalRate, *requestType, *operationType, *debugOn, *debugLevel, *keyLen, *valLen, *leaderTimeout, *window)
+	cl := src.New(int32(*name), cfg, *logFilePath, *batchSize, *batchTime, *testDuration, *arrivalRate, *requestType, *operationType, *debugOn, *debugLevel, *keyLen, *valLen, *window)
 
 	cl.WaitForConnections()
 	cl.Run()
