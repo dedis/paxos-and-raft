@@ -6,6 +6,7 @@ testTime=$4 # seconds
 batchTime=$5
 batchSize=$6
 pipelineLength=$7
+window=$8
 
 replica_path="replica/bin/replica"
 ctl_path="client/bin/client"
@@ -41,9 +42,9 @@ echo "sent consensus start up status"
 
 echo "starting clients"
 
-#nohup ./${ctl_path} --name 11 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}11.log &
-#nohup ./${ctl_path} --name 12 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}12.log &
-./${ctl_path}       --name 13 --requestType request --debugOn --debugLevel 6 --batchSize  50 --batchTime 1000 --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}"  >${output_path}13.log
+nohup ./${ctl_path} --name 11 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}" --window "${window}" >${output_path}11.log &
+nohup ./${ctl_path} --name 12 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}" --window "${window}" >${output_path}12.log &
+./${ctl_path}       --name 13 --requestType request --debugOn --debugLevel 6 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --leaderTimeout "${viewTimeoutTime}" --testDuration "${testTime}" --window "${window}" >${output_path}13.log
 
 sleep 10
 

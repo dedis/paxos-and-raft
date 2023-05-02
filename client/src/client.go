@@ -55,9 +55,10 @@ type Client struct {
 	keyLen              int                     // length of key
 	valueLen            int                     // length of value
 
-	useFixedLeader bool
-	fixedLeader    int32
-	finished       bool
+	finished           bool
+	window             int64
+	numSentBatches     int64
+	numReceivedBatches int64
 }
 
 /*
@@ -80,7 +81,7 @@ const arrivalBufferSize = 1000000     // size of the buffer that collects new re
 	Instantiate a new Client instance, allocate the buffers
 */
 
-func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clientBatchSize int, clientBatchTime int, testDuration int, arrivalRate int, requestType string, operationType int, debugOn bool, debugLevel int, keyLen int, valLen int, leaderTimeout int, useFixedLeader bool, fixedLeader int) *Client {
+func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clientBatchSize int, clientBatchTime int, testDuration int, arrivalRate int, requestType string, operationType int, debugOn bool, debugLevel int, keyLen int, valLen int, leaderTimeout int, window int64) *Client {
 	cl := Client{
 		clientName:                  name,
 		numReplicas:                 len(cfg.Peers),
@@ -113,9 +114,10 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 		clientListenAddress: common.GetAddress(cfg.Clients, name),
 		keyLen:              keyLen,
 		valueLen:            valLen,
-		useFixedLeader:      useFixedLeader,
-		fixedLeader:         int32(fixedLeader),
 		finished:            false,
+		window:              window,
+		numSentBatches:      0,
+		numReceivedBatches:  0,
 	}
 
 	cl.debug("Created a new client instance", 0)

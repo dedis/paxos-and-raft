@@ -23,6 +23,7 @@ func (cl *Client) handleClientResponseBatch(batch *proto.ClientBatch) {
 		batch: *batch,
 		time:  time.Now(), // record the time when the response was received
 	}
+	cl.numReceivedBatches++
 	//cl.debug("Added response Batch "+fmt.Sprintf(" %v ", batch), 0)
 	//cl.lastSeenTimeLeader = time.Now()
 
@@ -71,10 +72,22 @@ func (cl *Client) startRequestGenerators() {
 					numRequests++
 				}
 
-				if cl.useFixedLeader {
+				if (cl.numSentBatches - cl.numReceivedBatches) > cl.window {
+					continue
+				}
+
+				for i, _ := range cl.replicaAddrList {
+
+					var requests_i []*proto.SingleOperation
+
+					for j := 0; j < len(requests); j++ {
+						requests_i = append(requests_i, requests[j])
+					}
+
+					// create a new client batch
 					batch := proto.ClientBatch{
 						UniqueId: strconv.Itoa(int(cl.clientName)) + "." + strconv.Itoa(threadNumber) + "." + strconv.Itoa(localCounter), // this is a unique string id,
-						Requests: requests,
+						Requests: requests_i,
 						Sender:   int64(cl.clientName),
 					}
 					cl.debug("Sending "+strconv.Itoa(int(cl.clientName))+"."+strconv.Itoa(threadNumber)+"."+strconv.Itoa(localCounter)+" batch size "+strconv.Itoa(len(requests)), 0)
@@ -84,32 +97,7 @@ func (cl *Client) startRequestGenerators() {
 						Obj:  &batch,
 					}
 
-					cl.sendMessage(cl.fixedLeader, rpcPair)
-				} else {
-
-					for i, _ := range cl.replicaAddrList {
-
-						var requests_i []*proto.SingleOperation
-
-						for j := 0; j < len(requests); j++ {
-							requests_i = append(requests_i, requests[j])
-						}
-
-						// create a new client batch
-						batch := proto.ClientBatch{
-							UniqueId: strconv.Itoa(int(cl.clientName)) + "." + strconv.Itoa(threadNumber) + "." + strconv.Itoa(localCounter), // this is a unique string id,
-							Requests: requests_i,
-							Sender:   int64(cl.clientName),
-						}
-						cl.debug("Sending "+strconv.Itoa(int(cl.clientName))+"."+strconv.Itoa(threadNumber)+"."+strconv.Itoa(localCounter)+" batch size "+strconv.Itoa(len(requests)), 0)
-
-						rpcPair := common.RPCPair{
-							Code: cl.messageCodes.ClientBatchRpc,
-							Obj:  &batch,
-						}
-
-						cl.sendMessage(i, rpcPair)
-					}
+					cl.sendMessage(i, rpcPair)
 				}
 
 				batch := proto.ClientBatch{
@@ -117,6 +105,9 @@ func (cl *Client) startRequestGenerators() {
 					Requests: requests,
 					Sender:   int64(cl.clientName),
 				}
+
+				cl.numSentBatches++
+
 				localCounter++
 				lastSent = time.Now()
 				cl.sentRequests[threadNumber] = append(cl.sentRequests[threadNumber], requestBatch{
