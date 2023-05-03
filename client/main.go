@@ -21,7 +21,7 @@ func main() {
 	debugLevel := flag.Int("debugLevel", -1, "debug level int")
 	keyLen := flag.Int("keyLen", 8, "key length")
 	valLen := flag.Int("valLen", 8, "value length")
-	window := flag.Int64("window", 1000, "number of out standing requests")
+	window := flag.Int64("window", 1000, "number of out standing client batches")
 
 	flag.Parse()
 
