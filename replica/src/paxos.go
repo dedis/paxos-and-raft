@@ -112,7 +112,7 @@ func InitPaxosConsensus(numReplicas int, name int32, replica *Replica, pipelineL
 func (p *Paxos) run() {
 	p.startTime = time.Now()
 	p.lastCommittedTime = time.Now()
-	initLeader := int32(2)
+	initLeader := int32(1)
 
 	if p.name == initLeader {
 		p.replica.sendPrepare()

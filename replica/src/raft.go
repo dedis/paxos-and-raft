@@ -112,7 +112,7 @@ func NewRaft(id int32, cfg configuration.InstanceConfig, debugOn bool, debugLeve
 	}
 
 	r.votedFor[1] = 2
-	if r.id == 2 {
+	if r.id == 1 {
 		r.state = "L"
 	}
 	return r
