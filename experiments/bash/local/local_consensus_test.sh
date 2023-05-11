@@ -48,7 +48,7 @@ nohup ./${ctl_path} --name 13 --requestType request --debugOn --debugLevel 100 -
 nohup ./${ctl_path} --name 14 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}14.log &
 nohup ./${ctl_path} --name 15 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}15.log &
 
-sleep 100
+sleep 120
 
 echo "finished running clients"
 

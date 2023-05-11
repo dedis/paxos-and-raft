@@ -111,7 +111,7 @@ func NewRaft(id int32, cfg configuration.InstanceConfig, debugOn bool, debugLeve
 		cancel:                 cancel,
 	}
 
-	r.votedFor[1] = 2
+	r.votedFor[1] = 1
 	if r.id == 1 {
 		r.state = "L"
 	}
@@ -234,9 +234,13 @@ func (in *Raft) compareLog(lastLogIndex int64, lastLogTerm int64) bool {
 // receiver code for leader request
 
 func (in *Raft) RequestVote(ctx context.Context, req *proto.LeaderRequest) (*proto.LeaderResponse, error) {
+	in.centralMutex.Lock()
 	if !in.startedFailureDetector {
 		in.startedFailureDetector = true
+		in.centralMutex.Unlock()
 		in.startViewTimeoutChecker(in.cancel)
+	} else {
+		in.centralMutex.Unlock()
 	}
 	in.centralMutex.Lock()
 	defer in.centralMutex.Unlock()
@@ -274,9 +278,13 @@ func (in *Raft) RequestVote(ctx context.Context, req *proto.LeaderRequest) (*pro
 // receiver side of the append entries RPC
 
 func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*proto.AppendResponse, error) {
+	in.centralMutex.Lock()
 	if !in.startedFailureDetector {
 		in.startedFailureDetector = true
+		in.centralMutex.Unlock()
 		in.startViewTimeoutChecker(in.cancel)
+	} else {
+		in.centralMutex.Unlock()
 	}
 	in.centralMutex.Lock()
 	defer in.centralMutex.Unlock()
@@ -442,9 +450,13 @@ func (in *Raft) requestVote() bool {
 // leader sending append entries rpc
 
 func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch {
+	in.centralMutex.Lock()
 	if !in.startedFailureDetector {
 		in.startedFailureDetector = true
+		in.centralMutex.Unlock()
 		in.startViewTimeoutChecker(in.cancel)
+	} else {
+		in.centralMutex.Unlock()
 	}
 	in.centralMutex.Lock()
 	if in.id != in.votedFor[int32(in.currentTerm)] || in.state != "L" {
@@ -622,7 +634,7 @@ func (in *Raft) startViewTimeoutChecker(cancel chan bool) {
 				state := in.state
 				in.centralMutex.Unlock()
 				if time.Now().Sub(lastSeenTimeLeader).Microseconds() > in.viewTimeOut && state != "L" {
-					in.debug("leadr timeout!", 7)
+					in.debug("leader timeout!", 7)
 					in.centralMutex.Lock()
 					in.state = "C"
 					in.currentTerm++
