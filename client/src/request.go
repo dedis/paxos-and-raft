@@ -19,11 +19,19 @@ func (cl *Client) handleClientResponseBatch(batch *proto.ClientBatch) {
 	if cl.finished {
 		return
 	}
+
+	_, ok := cl.receivedResponses[batch.UniqueId]
+	if ok {
+		return
+	}
+
 	cl.receivedResponses[batch.UniqueId] = requestBatch{
 		batch: *batch,
 		time:  time.Now(), // record the time when the response was received
 	}
+	cl.receivedNumMutex.Lock()
 	cl.numReceivedBatches++
+	cl.receivedNumMutex.Unlock()
 	cl.debug("Added response Batch with id "+batch.UniqueId, 0)
 	//cl.lastSeenTimeLeader = time.Now()
 
@@ -59,6 +67,9 @@ func (cl *Client) startRequestGenerators() {
 			localCounter := 0
 			lastSent := time.Now() // used to get how long to wait
 			for true {             // this runs forever
+				if cl.finished {
+					return
+				}
 				numRequests := 0
 				var requests []*proto.SingleOperation
 				// this loop collects requests until the minimum batch size is met OR the batch time is timeout
@@ -71,10 +82,12 @@ func (cl *Client) startRequestGenerators() {
 					})
 					numRequests++
 				}
-
+				cl.receivedNumMutex.Lock()
 				if (cl.numSentBatches - cl.numReceivedBatches) > cl.window {
+					cl.receivedNumMutex.Unlock()
 					continue
 				}
+				cl.receivedNumMutex.Unlock()
 
 				for i, _ := range cl.replicaAddrList {
 

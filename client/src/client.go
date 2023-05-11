@@ -58,6 +58,7 @@ type Client struct {
 	window             int64
 	numSentBatches     int64
 	numReceivedBatches int64
+	receivedNumMutex   *sync.Mutex
 }
 
 /*
@@ -115,6 +116,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 		window:              window,
 		numSentBatches:      0,
 		numReceivedBatches:  0,
+		receivedNumMutex:    &sync.Mutex{},
 	}
 
 	cl.debug("Created a new client instance", 0)
