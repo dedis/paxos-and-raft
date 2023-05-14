@@ -28,7 +28,7 @@ nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize "${batchSize}"
 nohup ./${replica_path} --name 4 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}4.log &
 nohup ./${replica_path} --name 5 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" >${output_path}5.log &
 
-echo "Started 3 replicas"
+echo "Started 5 replicas"
 
 sleep 5
 
