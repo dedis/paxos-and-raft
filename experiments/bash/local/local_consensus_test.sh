@@ -10,6 +10,10 @@ replica_path="replica/bin/replica"
 ctl_path="client/bin/client"
 output_path="logs/"
 
+rm -r configuration/local
+mkdir -p configuration/local
+python3 configuration/config-generate.py 5 5 0.0.0.0 0.0.0.0 0.0.0.0 0.0.0.0 0.0.0.0 0.0.0.0 0.0.0.0 0.0.0.0 0.0.0.0 0.0.0.0 > configuration/local/configuration.yml
+
 rm -r ${output_path}
 mkdir ${output_path}
 
@@ -28,13 +32,13 @@ echo "Started 3 replicas"
 
 sleep 5
 
-./${ctl_path} --name 11 --requestType status --operationType 1  --debugOn --debugLevel 0 >${output_path}status1.log
+./${ctl_path} --name 21 --requestType status --operationType 1  --debugOn --debugLevel 0 >${output_path}status1.log
 
 sleep 5
 
 echo "sent initial status"
 
-./${ctl_path} --name 11 --requestType status --operationType 3  --debugOn --debugLevel 0 >${output_path}status3.log
+./${ctl_path} --name 22 --requestType status --operationType 3  --debugOn --debugLevel 0 >${output_path}status3.log
 
 sleep 5
 
@@ -42,28 +46,29 @@ echo "sent consensus start up status"
 
 echo "starting clients"
 
-nohup ./${ctl_path} --name 11 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}11.log &
-nohup ./${ctl_path} --name 12 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}12.log &
-nohup ./${ctl_path} --name 13 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}13.log &
-nohup ./${ctl_path} --name 14 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}14.log &
-nohup ./${ctl_path} --name 15 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}15.log &
+nohup ./${ctl_path} --name 21 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}21.log &
+nohup ./${ctl_path} --name 22 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}22.log &
+nohup ./${ctl_path} --name 23 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}23.log &
+nohup ./${ctl_path} --name 24 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}24.log &
+nohup ./${ctl_path} --name 25 --requestType request --debugOn --debugLevel 100 --batchSize  "${batchSize}" --batchTime "${batchTime}" --arrivalRate "${arrivalRate}" --window "${window}" >${output_path}25.log &
 
 sleep 120
 
 echo "finished running clients"
 
 
-nohup ./${ctl_path} --name 11 --requestType status --operationType 2  --debugOn --debugLevel 10 >${output_path}status2.log &
+nohup ./${ctl_path} --name 21 --requestType status --operationType 2  --debugOn --debugLevel 10 >${output_path}status2.log &
 
 
 echo "sent status to print logs"
 
 sleep 30
 
-pkill replica; pkill replica; pkill replica
-pkill client; pkill client; pkill client
+pkill replica; pkill replica; pkill replica; pkill replica; pkill replica
+pkill client; pkill client; pkill client; pkill client; pkill client
+rm -r configuration/local
 
-python3 experiments/python/overlay-test.py "${testTime}" logs/1-consensus.txt logs/2-consensus.txt logs/3-consensus.txt logs/4-consensus.txt logs/5-consensus.txt > ${output_path}python-consensus.log
+python3 experiments/python/overlay-test.py logs/1-consensus.txt logs/2-consensus.txt logs/3-consensus.txt logs/4-consensus.txt logs/5-consensus.txt > ${output_path}python-consensus.log
 
 echo "Killed instances"
 
