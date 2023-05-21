@@ -30,7 +30,7 @@ type Client struct {
 	incomingChan chan *common.RPCPair      // used to collect ClientBatch messages for responses and Status messages for responses
 
 	messageCodes proto.MessageCode
-	logFilePath  string // the path to write the requests and responses, used for sanity checks
+	logFilePath  string // the path to write the requests and responses time, used for sanity checks
 
 	clientBatchSize int // maximum client side batch size
 	clientBatchTime int // maximum client side batch time in micro seconds
@@ -72,7 +72,7 @@ type requestBatch struct {
 
 const statusTimeout = 5               // time to wait for a status request in seconds
 const numOutgoingThreads = 200        // number of wire writers: since the I/O writing is expensive we delegate that task to a thread pool and separate from the critical path
-const numRequestGenerationThreads = 1 // number of  threads that generate client requests upon receiving an arrival indication todo try different values for this: lower values result in big batches
+const numRequestGenerationThreads = 1 // number of  threads that generate client requests upon receiving an arrival indication
 const incomingBufferSize = 1000000    // the size of the buffer which receives all the incoming messages (client response batch messages and client status response message)
 const outgoingBufferSize = 1000000    // size of the buffer that collects messages to be written to the wire
 const arrivalBufferSize = 1000000     // size of the buffer that collects new request arrivals
@@ -119,7 +119,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 		receivedNumMutex:    &sync.Mutex{},
 	}
 
-	cl.debug("Created a new client instance", 0)
+	//cl.debug("Created a new client instance", 0)
 
 	// initialize replicaAddrList
 	for i := 0; i < len(cfg.Peers); i++ {
@@ -134,7 +134,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 	cl.RegisterRPC(new(proto.ClientBatch), cl.messageCodes.ClientBatchRpc)
 	cl.RegisterRPC(new(proto.Status), cl.messageCodes.StatusRPC)
 
-	cl.debug("Registered RPCs in the table", 0)
+	//cl.debug("Registered RPCs in the table", 0)
 
 	// Set random seed
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -153,8 +153,8 @@ func (cl *Client) RegisterRPC(msgObj proto.Serializable, code uint8) {
 	cl.rpcTable[code] = &common.RPCPair{Code: code, Obj: msgObj}
 }
 
-func (cl *Client) debug(message string, level int) {
-	if cl.debugOn && level >= cl.debugLevel {
-		fmt.Printf("%v\n", message)
-	}
-}
+//func (cl *Client) debug(message string, level int) {
+//	if cl.debugOn && level >= cl.debugLevel {
+//		fmt.Printf("%v\n", message)
+//	}
+//}

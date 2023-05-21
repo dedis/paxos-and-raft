@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	name := flag.Int64("name", 11, "name of the client as specified in the configuration.yml")
+	name := flag.Int64("name", 21, "name of the client as specified in the configuration.yml")
 	configFile := flag.String("config", "configuration/local/configuration.yml", "configuration file")
 	logFilePath := flag.String("logFilePath", "logs/", "log file path")
 	batchSize := flag.Int("batchSize", 50, "client batch size")
@@ -16,7 +16,7 @@ func main() {
 	testDuration := flag.Int("testDuration", 60, "test duration in seconds")
 	arrivalRate := flag.Int("arrivalRate", 1000, "poisson arrival rate in requests per second")
 	requestType := flag.String("requestType", "status", "request type: [status , request]")
-	operationType := flag.Int("operationType", 1, "Type of operation for a status request: 1 (bootstrap server), 2: (print log)")
+	operationType := flag.Int("operationType", 1, "Type of operation for a status request: 1 (bootstrap server), 2: (print log), 3: start consensus")
 	debugOn := flag.Bool("debugOn", false, "false or true")
 	debugLevel := flag.Int("debugLevel", -1, "debug level int")
 	keyLen := flag.Int("keyLen", 8, "key length")
@@ -37,12 +37,11 @@ func main() {
 	cl.StartOutgoingLinks()
 	cl.ConnectToReplicas()
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	if cl.RequestType == "status" {
 		cl.SendStatus(cl.OperationType)
 	} else if cl.RequestType == "request" {
 		cl.SendRequests()
 	}
-
 }

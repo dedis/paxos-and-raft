@@ -4,10 +4,6 @@ Client implementation supports two operations.
 
 (2) Send SMR ```request```s to replicas
 
-To send a status request ```./client/bin/client --name 11 --requestType status --operationType [1, 2, 3]```
+Status supports 3 operations: ```OperationType 1``` for server bootstrapping, ```OperationType 2``` for server log printing, and ```OperationType 3``` for starting consensus layer
 
-```OperationType 1``` for server bootstrapping, ```OperationType 2``` for server log printing, and ```OperationType 3``` for starting consensus layer
-
-To send client requests with minimal options ```./client/bin/client --name 11 --defaultReplica 1 --requestType request```
-
-You can find the of supported parameters in the ```client/main.go``` 
+```integration-test/safety_test.sh``` contains different client operation examples
