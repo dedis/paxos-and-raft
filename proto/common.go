@@ -15,6 +15,7 @@ type Serializable interface {
 
 /*
 	A struct that allocates a unique uint8 for each message type. When you define a new proto message type, add the message to here
+	raft messages are gRPC only, hence do not need a code
 */
 
 type MessageCode struct {

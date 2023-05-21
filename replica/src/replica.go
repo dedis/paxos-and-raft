@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"paxos_raft/benchmark"
 	"paxos_raft/common"
 	"paxos_raft/configuration"
 	"paxos_raft/proto"
@@ -61,8 +60,8 @@ type Replica struct {
 
 	consAlgo string // async/paxos
 
-	benchmarkMode int                  // 0 for resident K/V store, 1 for redis
-	state         *benchmark.Benchmark // k/v store
+	benchmarkMode int        // 0 for resident K/V store, 1 for redis
+	state         *Benchmark // k/v store
 
 	incomingRequests []*proto.ClientBatch
 	pipelineLength   int
@@ -118,7 +117,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		logPrinted:          false,
 		consAlgo:            consAlgo,
 		benchmarkMode:       benchmarkMode,
-		state:               benchmark.Init(benchmarkMode, name, keyLen, valLen),
+		state:               Init(benchmarkMode, name, keyLen, valLen),
 		incomingRequests:    make([]*proto.ClientBatch, 0),
 		pipelineLength:      pipelineLength,
 		requestsIn:          make(chan []*proto.ClientBatch),
