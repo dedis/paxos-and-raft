@@ -1,7 +1,6 @@
 package configuration
 
 import (
-	"errors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"strconv"
@@ -11,18 +10,6 @@ import (
 /*
 	config.go implements the methods to parse a config file and creates the instance structs
 */
-
-var (
-
-	// ErrNoInstance is returned when an instance definition is expected but missing
-	ErrNoInstance = errors.New("missing instance definition")
-
-	// ErrInvalidInstanceDefinition is returned when an invalid instance definition is discovered, e.g. an empty name or address
-	ErrInvalidInstanceDefinition = errors.New("invalid instance definition")
-
-	// ErrDuplicateInstance is returned when there are multiple definitions for the same instance
-	ErrDuplicateInstance = errors.New("duplicate instance")
-)
 
 // Instance describes a single  instance connection information
 type Instance struct {
@@ -49,11 +36,6 @@ func NewInstanceConfig(fname string, name int64) (*InstanceConfig, error) {
 		return nil, err
 	}
 	cfg = configureSelfIP(cfg, name)
-	// sanity checks
-	allInstances := append(cfg.Peers, cfg.Clients...)
-	if err := checkInstanceList(allInstances...); err != nil {
-		panic(err.Error())
-	}
 	return &cfg, nil
 }
 
@@ -76,7 +58,7 @@ func configureSelfIP(cfg InstanceConfig, name int64) InstanceConfig {
 			return cfg
 		}
 	}
-	return cfg
+	panic("should not happen")
 }
 
 /*
@@ -85,38 +67,4 @@ func configureSelfIP(cfg InstanceConfig, name int64) InstanceConfig {
 
 func getPort(address string) string {
 	return strings.Split(address, ":")[1]
-}
-
-/*
-checks whether the identifier is unique and the address is unique for each replica and client
-*/
-func checkInstanceList(instances ...Instance) error {
-
-	if len(instances) == 0 {
-		return ErrNoInstance
-	}
-
-	seenNames := make(map[string]bool)
-	seenAddresses := make(map[string]bool)
-	for _, in := range instances {
-		// Instance name must be unique in the configuration file.
-		if len(in.Name) == 0 {
-			return ErrInvalidInstanceDefinition
-		}
-		if seenNames[in.Name] {
-			return ErrDuplicateInstance
-		}
-		seenNames[in.Name] = true
-
-		// Instance address must be unique in the configuration file.
-		if len(in.Address) == 0 || len(in.GAddress) == 0 {
-			return ErrInvalidInstanceDefinition
-		}
-		if seenAddresses[in.Address] || seenAddresses[in.GAddress] {
-			return ErrDuplicateInstance
-		}
-		seenAddresses[in.Address] = true
-		seenAddresses[in.GAddress] = true
-	}
-	return nil
 }
