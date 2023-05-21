@@ -88,7 +88,7 @@ func (t *TimerWithCancel) SetTimeoutFuntion(f func()) {
 }
 
 /*
-Cancel timer
+	Cancel timer
 */
 func (t *TimerWithCancel) Cancel() {
 	select {
