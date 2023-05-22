@@ -7,7 +7,7 @@ import time
 print("Starting crash recovery script")
 sys.stdout.flush()
 process_logs = [sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]]
-wait_time = sys.argv[6]
+wait_time = 1
 
 
 def find_process_ids(process_logs):
