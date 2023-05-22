@@ -54,7 +54,7 @@ nohup ./${ctl_path} --name 25 --logFilePath ${output_path} --requestType request
 
 sleep 5
 
-python3 integration-test/python/crash-recovery-test.py logs/1.log logs/2.log logs/3.log logs/4.log logs/5.log > ${output_path}python-crash-recovery.log
+python3 integration-test/python/crash-recovery-test.py ${output_path}/1.log ${output_path}/2.log ${output_path}/3.log ${output_path}/4.log ${output_path}/5.log > ${output_path}python-crash-recovery.log
 
 
 sleep 120
@@ -73,7 +73,7 @@ pkill replica; pkill replica; pkill replica; pkill replica; pkill replica
 pkill client; pkill client; pkill client; pkill client; pkill client
 rm -r configuration/local
 
-python3 integration-test/python/overlay-test.py logs/1-consensus.txt logs/2-consensus.txt logs/3-consensus.txt logs/4-consensus.txt logs/5-consensus.txt > ${output_path}python-consensus.log
+python3 integration-test/python/overlay-test.py ${output_path}/1-consensus.txt ${output_path}/2-consensus.txt ${output_path}/3-consensus.txt ${output_path}/4-consensus.txt ${output_path}/5-consensus.txt
 
 echo "Killed instances"
 
