@@ -6,14 +6,13 @@ import time
 
 print("Starting crash recovery script")
 sys.stdout.flush()
-process_logs = [sys.argv[1], sys.argv[2], sys.argv[3]]
-wait_time = sys.argv[4]
+process_logs = [sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]]
+wait_time = sys.argv[6]
 
 
 def find_process_ids(process_logs):
     process_ids = []
     for i in range(len(process_logs)):
-        lines = []
         with open(process_logs[i]) as file:
             lines = [line.rstrip() for line in file]
         
@@ -41,13 +40,15 @@ def exit_handler():
     os.system("kill -CONT " + processes[0])
     os.system("kill -CONT " + processes[1])
     os.system("kill -CONT " + processes[2])
+    os.system("kill -CONT " + processes[3])
+    os.system("kill -CONT " + processes[4])
 
 
 atexit.register(exit_handler)
 
 t_end = time.time() + 40
 while time.time() < t_end:
-    randomInstance = random.randint(0, 2)
+    randomInstance = random.randint(0, 4)
     print("stopping" + str(processes[randomInstance]))
     os.system("kill -STOP " + processes[randomInstance])
     time.sleep(int(wait_time))

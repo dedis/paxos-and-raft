@@ -1,59 +1,16 @@
 import os
+import sys
 
-testTime = 60  # seconds
-pipelineLength = 1
+print("Test-1 base case")
+sys.stdout.flush()
 
+arrivalRate=100
+algo="paxos"
+viewTimeoutTime=30000000
+batchTime=100
+batchSize=1
+pipelineLength=1
+window=1
 
-def run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize, pipelineLength):
-    os.system("/bin/bash /home/pasindu/Documents/paxos_n_raft/integration-test/bash/local/safety_test.sh " + str(arrivalRate) + " "
-              + algo + " "
-              + str(viewTimeoutTime) + " "
-              + str(testTime) + " "
-              + str(batchTime) + " "
-              + str(batchSize) + " "
-              + str(pipelineLength))
+os.system("/bin/bash integration-test/safety-test.sh "+str(arrivalRate)+" "+algo+" "+str(viewTimeoutTime)+" "+str(batchTime)+" "+str(batchSize)+" "+str(pipelineLength)+ " "+str(window))
 
-
-for algo in ["paxos", "raft"]:
-    # case 1
-    arrivalRate = 1000
-    viewTimeoutTime = 3000000000
-    batchTime = 100
-    batchSize = 1
-    run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize, pipelineLength)
-
-    # case 2
-    arrivalRate = 10000
-    viewTimeoutTime = 3000000000
-    batchTime = 2000
-    batchSize = 50
-    run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize, pipelineLength)
-
-    # case 3
-    arrivalRate = 10000
-    viewTimeoutTime = 30000
-    batchTime = 2000
-    batchSize = 50
-    run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize, pipelineLength)
-
-    # case 4
-    arrivalRate = 10000
-    viewTimeoutTime = 3000
-    batchTime = 2000
-    batchSize = 50
-    run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize, pipelineLength)
-
-    # case 5
-    arrivalRate = 10000
-    viewTimeoutTime = 300
-    batchTime = 2000
-    batchSize = 50
-    run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize, pipelineLength)
-
-    # case 6
-    arrivalRate = 5000
-    viewTimeoutTime = 3000000
-    batchTime = 2000
-    batchSize = 50
-    pipelineLength = 10
-    run(arrivalRate, algo, viewTimeoutTime, batchTime, batchSize, pipelineLength)

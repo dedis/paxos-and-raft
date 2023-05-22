@@ -16,7 +16,7 @@ run ```protoc --go_out=./ --go_opt=paths=source_relative --go-grpc_out=. --go-gr
 run ```sudo go mod vendor``` to add dependencies
 
 
-run ```sudo go build -v -o ./client/bin/client ./client/``` and ```sudo go build -v -o ./replica/bin/replica ./replica/``` to build the client and the replica
+run ```go build -v -o ./client/bin/client ./client/``` and ```go build -v -o ./replica/bin/replica ./replica/``` to build the client and the replica
 
 
 All the commands to run replicas and the clients are available in the respective directories
