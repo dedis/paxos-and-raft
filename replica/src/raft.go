@@ -68,6 +68,7 @@ type Raft struct {
 }
 
 // create a new raft instance
+
 func NewRaft(id int32, cfg configuration.InstanceConfig, debugOn bool, debugLevel int, address string, numNodes int64, viewTimeOut int64, logFilePath string, requestsIn chan []*proto.ClientBatch, requestsOut chan []*proto.ClientBatch, replica *Replica, cancel chan bool) *Raft {
 
 	r := &Raft{
@@ -144,7 +145,7 @@ func (in *Raft) NetworkInit() {
 		}
 	}()
 
-	in.debug("started listening to grpc  ", 7)
+	//in.debug("started listening to grpc  ", 7)
 }
 
 // setup gRPC clients to all replicas and return the connection pointers
@@ -165,18 +166,18 @@ func (in *Raft) SetupgRPC() {
 		})
 	}
 	in.peers = peers
-	in.debug("setup all the grpc clients", 7)
+	//in.debug("setup all the grpc clients", 7)
 }
 
-/*
-	if turned on, print the message to console
-*/
-
-func (in *Raft) debug(message string, level int) {
-	if in.debugOn && level >= in.debugLevel {
-		fmt.Printf("%s\n", message)
-	}
-}
+///*
+//	if turned on, print the message to console
+//*/
+//
+//func (in *Raft) debug(message string, level int) {
+//	if in.debugOn && level >= in.debugLevel {
+//		fmt.Printf("%s\n", message)
+//	}
+//}
 
 // listen to the incoming channel, make a replica batch, replicate it and reply back
 
@@ -186,9 +187,9 @@ func (in *Raft) proposeBatch() {
 		for true {
 			requests := <-in.requestsIn
 			clientResponses := in.appendEntries(requests)
-			in.debug("raft proposed batch of client batches of size "+strconv.Itoa(len(requests)), 0)
+			//in.debug("raft proposed batch of client batches of size "+strconv.Itoa(len(requests)), 0)
 			if clientResponses != nil {
-				in.debug("sent back 1 batch of client responses", 5)
+				//in.debug("sent back 1 batch of client responses", 5)
 				in.requestsOut <- clientResponses
 			}
 		}
@@ -222,13 +223,14 @@ func (in *Raft) compareLog(lastLogIndex int64, lastLogTerm int64) bool {
 		return false
 	} else if myLastLogTerm < lastLogTerm {
 		return true
-	} else {
+	} else if myLastLogTerm == lastLogTerm {
 		if myLastLogIndex > lastLogIndex {
 			return false
 		} else {
 			return true
 		}
 	}
+	panic("should not happen")
 }
 
 // receiver code for leader request
@@ -254,7 +256,7 @@ func (in *Raft) RequestVote(ctx context.Context, req *proto.LeaderRequest) (*pro
 	if currentTerm >= req.Term {
 		leaderResponse.Term = currentTerm
 		leaderResponse.VoteGranted = false
-		in.debug("request vote failed due to older term", 7)
+		//in.debug("request vote failed due to older term", 7)
 	} else {
 		result := in.compareLog(req.LastLogIndex, req.LastLogTerm)
 		if result {
@@ -263,12 +265,12 @@ func (in *Raft) RequestVote(ctx context.Context, req *proto.LeaderRequest) (*pro
 			in.state = "F"
 			leaderResponse.Term = req.Term
 			leaderResponse.VoteGranted = true
-			in.debug("leader for term "+strconv.Itoa(int(in.currentTerm))+" is "+strconv.Itoa(int(req.CandidateId)), 7)
+			//in.debug("leader for term "+strconv.Itoa(int(in.currentTerm))+" is "+strconv.Itoa(int(req.CandidateId)), 7)
 
 		} else {
 			leaderResponse.Term = currentTerm
 			leaderResponse.VoteGranted = false
-			in.debug("request vote failed due to log mismatch", 7)
+			//in.debug("request vote failed due to log mismatch", 7)
 		}
 	}
 
@@ -299,7 +301,7 @@ func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*p
 
 		appendEntryResponse.Term = currentTerm
 		appendEntryResponse.Success = false
-		in.debug("append request failed due to older term", 7)
+		//in.debug("append request failed due to older term", 7)
 		return &appendEntryResponse, nil
 	}
 
@@ -309,7 +311,7 @@ func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*p
 
 		appendEntryResponse.Term = currentTerm
 		appendEntryResponse.Success = false
-		in.debug("append entries failed due to stale log", 7)
+		//in.debug("append entries failed due to stale log", 7)
 		return &appendEntryResponse, nil
 	} else {
 		// PrevLogIndex exists
@@ -319,7 +321,7 @@ func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*p
 		if prevLogTerm != req.PrevLogTerm || prevLogValues.UniqueId != req.PrevLogValue {
 			appendEntryResponse.Term = currentTerm
 			appendEntryResponse.Success = false
-			in.debug("append entries failed due to previous log mismatch", 7)
+			//in.debug("append entries failed due to previous log mismatch", 7)
 			return &appendEntryResponse, nil
 		} else {
 
@@ -348,7 +350,7 @@ func (in *Raft) AppendEntries(ctx context.Context, req *proto.AppendRequest) (*p
 				in.log[req.PrevLogIndex+1+i].commands = *req.Entries[i].Value
 			}
 
-			in.debug("append entry succeeded", 7)
+			//in.debug("append entry succeeded", 7)
 
 			in.updateRaftSMR(int(req.LeaderCommit))
 
@@ -382,7 +384,7 @@ func (in *Raft) requestVote() bool {
 		voteGranted: true,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(10)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(20)*time.Second)
 
 	wg := sync.WaitGroup{}
 	for _, p := range in.peers {
@@ -401,11 +403,11 @@ func (in *Raft) requestVote() bool {
 
 			if err != nil {
 				responses <- &response{term: -1, voteGranted: false}
-				in.debug("request vote failed with"+err.Error(), 0)
+				//in.debug("request vote failed with"+err.Error(), 0)
 				return
 			} else {
 				responses <- &response{term: resp.Term, voteGranted: resp.VoteGranted}
-				in.debug("request vote received for term "+strconv.Itoa(int(resp.Term)), 0)
+				//in.debug("request vote received for term "+strconv.Itoa(int(resp.Term)), 0)
 				return
 			}
 		}(p)
@@ -499,7 +501,7 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 	}
 
 	responses := make(chan *response, in.numNodes-1)
-	in.debug("invoking raft append entry for index "+strconv.Itoa(int(lastIndex)), 7)
+	//in.debug("invoking raft append entry for index "+strconv.Itoa(int(lastIndex)), 7)
 	in.centralMutex.Unlock()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(10)*time.Second)
 	cancelled := false
@@ -535,7 +537,7 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 
 			if err != nil {
 				responses <- &response{success: false, term: -1}
-				in.debug("raft append entry failed with "+err.Error(), 0)
+				//in.debug("raft append entry failed with "+err.Error(), 0)
 				return
 			} else {
 				respTerm := resp.Term
@@ -547,10 +549,10 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 					return
 				} else if respTerm > termLocal {
 					responses <- &response{success: false, term: respTerm}
-					in.debug("append entry rpc failed with higher term", 0)
+					//in.debug("append entry rpc failed with higher term", 0)
 					return
 				} else if !respSuccess && respTerm <= termLocal {
-					in.debug("append entry rpc failed with previous index mismatch", 0)
+					//in.debug("append entry rpc failed with previous index mismatch", 0)
 					// retry
 					if prevLogIndexLocal >= 1 {
 						prevLogIndexLocal--
@@ -604,7 +606,7 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 					clientResponses = nil
 				} else if int64(yea) == in.numNodes/2+1 {
 					// decide
-					in.debug("append entry succeeded for index "+strconv.Itoa(len(in.log)-1), 7)
+					//in.debug("append entry succeeded for index "+strconv.Itoa(len(in.log)-1), 7)
 					in.centralMutex.Lock()
 					clientResponses = in.updateRaftSMR((len(in.log)) - 1)
 					in.centralMutex.Unlock()
@@ -634,7 +636,7 @@ func (in *Raft) startViewTimeoutChecker(cancel chan bool) {
 				state := in.state
 				in.centralMutex.Unlock()
 				if time.Now().Sub(lastSeenTimeLeader).Microseconds() > in.viewTimeOut && state != "L" {
-					in.debug("leader timeout!", 7)
+					//in.debug("leader timeout!", 7)
 					in.centralMutex.Lock()
 					in.state = "C"
 					in.currentTerm++
@@ -645,7 +647,7 @@ func (in *Raft) startViewTimeoutChecker(cancel chan bool) {
 						in.state = "L"
 						in.lastSeenTimeLeader = time.Now()
 					} else {
-						in.debug("leader election failed", 7)
+						//in.debug("leader election failed", 7)
 						in.state = "F"
 					}
 					in.centralMutex.Unlock()

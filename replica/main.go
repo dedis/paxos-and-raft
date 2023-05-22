@@ -31,7 +31,8 @@ func main() {
 		panic(err)
 	}
 
-	rp := src.New(int32(*name), cfg, *logFilePath, *batchSize, *batchTime, *debugOn, *debugLevel, *viewTimeout, *consAlgo, *benchmarkMode, *keyLen, *valLen, *pipelineLength)
+	rp := src.New(int32(*name), cfg, *logFilePath, *batchSize, *batchTime, *debugOn, *debugLevel, *viewTimeout, *consAlgo,
+		*benchmarkMode, *keyLen, *valLen, *pipelineLength)
 
 	rp.WaitForConnections()
 	rp.StartOutgoingLinks()

@@ -3,7 +3,6 @@ package src
 import (
 	"paxos_raft/common"
 	"paxos_raft/proto"
-	"strconv"
 	"time"
 )
 
@@ -12,7 +11,7 @@ import (
 func (rp *Replica) handleClientBatch(batch *proto.ClientBatch) {
 	rp.incomingRequests = append(rp.incomingRequests, batch)
 
-	if time.Now().Sub(rp.lastProposedTime).Microseconds() > int64(rp.replicaBatchTime) || len(rp.incomingRequests) >= rp.replicaBatchSize {
+	if (time.Now().Sub(rp.lastProposedTime).Microseconds() > int64(rp.replicaBatchTime) && len(rp.incomingRequests) > 0) || len(rp.incomingRequests) >= rp.replicaBatchSize {
 		var proposals []*proto.ClientBatch
 		if len(rp.incomingRequests) > rp.replicaBatchSize {
 			proposals = rp.incomingRequests[:rp.replicaBatchSize]
@@ -35,7 +34,7 @@ func (rp *Replica) handleClientBatch(batch *proto.ClientBatch) {
 		}
 		rp.lastProposedTime = time.Now()
 	} else {
-		rp.debug("Still did not invoke propose from smr, num client batches = "+strconv.Itoa(int(len(rp.incomingRequests)))+" ,time since last proposal "+strconv.Itoa(int(time.Now().Sub(rp.lastProposedTime).Microseconds())), 0)
+		//rp.debug("Still did not invoke propose from smr, num client batches = "+strconv.Itoa(int(len(rp.incomingRequests)))+" ,time since last proposal "+strconv.Itoa(int(time.Now().Sub(rp.lastProposedTime).Microseconds())), 0)
 	}
 
 }
@@ -57,11 +56,11 @@ func (rp *Replica) sendClientResponses(responses []*proto.ClientBatch) {
 			Code: rp.messageCodes.ClientBatchRpc,
 			Obj:  responses[i],
 		})
-		rp.debug("send client response to "+strconv.Itoa(int(responses[i].Sender)), 0)
+		//rp.debug("send client response to "+strconv.Itoa(int(responses[i].Sender)), 0)
 	}
 }
 
-// empty replica batch
+// send dummy requests to avoid leader revokes
 
 func (rp *Replica) sendDummyRequests(cancel chan bool) {
 	go func() {
@@ -70,7 +69,7 @@ func (rp *Replica) sendDummyRequests(cancel chan bool) {
 			case _ = <-cancel:
 				return
 			default:
-				time.Sleep(time.Duration(rp.viewTimeout/4) * time.Microsecond)
+				time.Sleep(time.Duration(rp.viewTimeout/2) * time.Microsecond)
 				clientBatch := proto.ClientBatch{
 					UniqueId: "nil",
 					Requests: make([]*proto.SingleOperation, 0),

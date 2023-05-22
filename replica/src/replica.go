@@ -58,7 +58,7 @@ type Replica struct {
 
 	logPrinted bool // to check if log was printed before
 
-	consAlgo string // async/paxos
+	consAlgo string // raft/paxos
 
 	benchmarkMode int        // 0 for resident K/V store, 1 for redis
 	state         *Benchmark // k/v store
@@ -74,7 +74,7 @@ type Replica struct {
 	cancel chan bool // to cancel the dummy client requests and the raft failure detector
 }
 
-const numOutgoingThreads = 100       // number of wire writers: since the I/O writing is expensive we delegate that task to a thread pool and separate from the critical path
+const numOutgoingThreads = 200       // number of wire writers: since the I/O writing is expensive we delegate that task to a thread pool and separate from the critical path
 const incomingBufferSize = 100000000 // the size of the buffer which receives all the incoming messages
 const outgoingBufferSize = 100000000 // size of the buffer that collects messages to be written to the wire
 
@@ -124,8 +124,6 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		requestsOut:         make(chan []*proto.ClientBatch, incomingBufferSize),
 		cancel:              make(chan bool, 7),
 	}
-	rand.Seed(time.Now().UnixNano() + int64(rp.name))
-	rp.paxosConsensus = InitPaxosConsensus(len(cfg.Peers), name, &rp, pipelineLength)
 
 	// initialize clientAddrList
 	for i := 0; i < len(cfg.Clients); i++ {
@@ -148,7 +146,9 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 	rp.RegisterRPC(new(proto.Status), rp.messageCodes.StatusRPC)
 	rp.RegisterRPC(new(proto.PaxosConsensus), rp.messageCodes.PaxosConsensus)
 
-	rp.debug("Registered RPCs in the table", 0)
+	rand.Seed(time.Now().UnixNano() + int64(rp.name))
+
+	//rp.debug("Registered RPCs in the table", 0)
 
 	gAddress := ""
 	for i := 0; i < len(cfg.Peers); i++ {
@@ -157,8 +157,13 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 			break
 		}
 	}
-
-	rp.raftConsensus = NewRaft(name, *cfg, debugOn, debugLevel, gAddress, int64(len(cfg.Peers)), int64(viewTimeout), logFilePath, rp.requestsIn, rp.requestsOut, &rp, rp.cancel)
+	if rp.consAlgo == "raft" {
+		rp.raftConsensus = NewRaft(name, *cfg, debugOn, debugLevel, gAddress, int64(len(cfg.Peers)), int64(viewTimeout), logFilePath, rp.requestsIn, rp.requestsOut, &rp, rp.cancel)
+	} else if rp.consAlgo == "paxos" {
+		rp.paxosConsensus = InitPaxosConsensus(name, &rp, pipelineLength)
+	} else {
+		panic("should not happen")
+	}
 
 	pid := os.Getpid()
 	fmt.Printf("--Initialized %v replica %v with process id: %v \n", consAlgo, name, pid)
@@ -185,13 +190,13 @@ func (rp *Replica) getNodeType(id int32) string {
 	if _, ok := rp.replicaAddrList[id]; ok {
 		return "replica"
 	}
-	return ""
+	panic("should not happen")
 }
 
 // debug printing
 
-func (rp *Replica) debug(s string, i int) {
-	if rp.debugOn && i >= rp.debugLevel {
-		fmt.Print(s + "\n")
-	}
-}
+//func (rp *Replica) debug(s string, i int) {
+//	if rp.debugOn && i >= rp.debugLevel {
+//		fmt.Print(s + "\n")
+//	}
+//}

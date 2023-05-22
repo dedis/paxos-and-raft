@@ -1,5 +1,3 @@
-Replica implements the paxos and raft consensus algorithms
+Replica directory implements the paxos and raft consensus algorithms
 
-To run a replica with minimum options
-
-```./replica/bin/replica --name 1```
+```integration-test/safety_test.sh``` contains examples for running a replica

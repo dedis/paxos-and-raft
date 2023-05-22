@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"paxos_raft/common"
 	"paxos_raft/proto"
-	"runtime"
 	"time"
 )
 
@@ -41,7 +40,7 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 				rp.printRaftLogConsensus() // this is for consensus testing purposes
 			}
 
-			fmt.Printf("num go routines: %v \n", runtime.NumGoroutine())
+			//fmt.Printf("num go routines: %v \n", runtime.NumGoroutine())
 		}
 	} else if message.Type == 3 {
 		if rp.consensusStarted == false {
@@ -50,19 +49,19 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 			rp.sendDummyRequests(rp.cancel)
 			if rp.consAlgo == "paxos" {
 				rp.paxosConsensus.run()
-				rp.debug("started paxos consensus with initial prepare", 0)
+				//rp.debug("started paxos consensus with initial prepare", 0)
 			} else if rp.consAlgo == "raft" {
 				rp.raftConsensus.NetworkInit()
 				time.Sleep(time.Duration(2) * time.Second)
 				rp.raftConsensus.SetupgRPC()
 				time.Sleep(time.Duration(2) * time.Second)
 				rp.raftConsensus.proposeBatch()
-				rp.debug("started raft consensus with initial prepare", 0)
+				//rp.debug("started raft consensus with initial prepare", 0)
 			}
 		}
 	}
 
-	rp.debug("Sending status reply ", 0)
+	//rp.debug("Sending status reply ", 0)
 
 	statusMessage := proto.Status{
 		Type: message.Type,
@@ -75,6 +74,6 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 	}
 
 	rp.sendMessage(int32(message.Sender), rpcPair)
-	rp.debug("Sent status ", 0)
+	//rp.debug("Sent status ", 0)
 
 }
