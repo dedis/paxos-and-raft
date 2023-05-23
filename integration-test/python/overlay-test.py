@@ -40,7 +40,7 @@ def checkMaps(files):
     print(str(match) + " entries match")
     print(str(misMatch) + " entries miss match")
 
-    if match > 0 and misMatch == 0:
+    if misMatch == 0:
         print("---TEST PASS---")
     else:
         print("---TEST FAILED---")

@@ -234,13 +234,13 @@ func (rp *Replica) printPaxosLogConsensus() {
 	}
 	defer f.Close()
 
-	for i := int32(1); i <= rp.paxosConsensus.lastCommittedLogIndex; i++ {
+	for i := int32(0); i < rp.paxosConsensus.lastCommittedLogIndex; i++ {
 		if rp.paxosConsensus.replicatedLog[i].decided == false {
 			panic("should not happen")
 		}
 		for j := 0; j < len(rp.paxosConsensus.replicatedLog[i].decidedValue.Requests); j++ {
 			for k := 0; k < len(rp.paxosConsensus.replicatedLog[i].decidedValue.Requests[j].Requests); k++ {
-				_, _ = f.WriteString(strconv.Itoa(int(i)) + "-" + strconv.Itoa(j) + "-" + strconv.Itoa(k) + ":" + rp.paxosConsensus.replicatedLog[i].acceptedValue.Requests[j].Requests[k].Command + "\n")
+				_, _ = f.WriteString(strconv.Itoa(int(i)) + "-" + strconv.Itoa(j) + "-" + strconv.Itoa(k) + ":" + rp.paxosConsensus.replicatedLog[i].decidedValue.Requests[j].Requests[k].Command + "\n")
 
 			}
 		}
