@@ -20,4 +20,4 @@ run ```go mod vendor``` to install dependencies
 run ```go build -v -o ./client/bin/client ./client/``` and ```go build -v -o ./replica/bin/replica ./replica/``` to build the client and the replica
 
 
-All the commands to run replicas and the clients are available in the ```integration-test/``` directory
+All the commands to run replicas and the clients are available in the directory ```integration-test/``` 
