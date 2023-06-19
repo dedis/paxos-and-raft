@@ -71,7 +71,9 @@ type Replica struct {
 	requestsIn  chan []*proto.ClientBatch
 	requestsOut chan []*proto.ClientBatch // for raft client responses
 
-	cancel chan bool // to cancel the dummy client requests and the raft failure detector
+	cancel       chan bool // to cancel the dummy client requests and the raft failure detector
+	isAsync      bool
+	asyncTimeout int
 }
 
 const numOutgoingThreads = 200       // number of wire writers: since the I/O writing is expensive we delegate that task to a thread pool and separate from the critical path
@@ -82,7 +84,7 @@ const outgoingBufferSize = 100000000 // size of the buffer that collects message
 	instantiate a new replica instance, allocate the buffers
 */
 
-func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, viewTimeout int, consAlgo string, benchmarkMode int, keyLen int, valLen int, pipelineLength int) *Replica {
+func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, viewTimeout int, consAlgo string, benchmarkMode int, keyLen int, valLen int, pipelineLength int, isAsync bool, asyncTimeout int) *Replica {
 	rp := Replica{
 		name:          name,
 		listenAddress: common.GetAddress(cfg.Peers, name),
@@ -123,6 +125,8 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		requestsIn:          make(chan []*proto.ClientBatch),
 		requestsOut:         make(chan []*proto.ClientBatch, incomingBufferSize),
 		cancel:              make(chan bool, 7),
+		isAsync:             isAsync,
+		asyncTimeout:        asyncTimeout,
 	}
 
 	// initialize clientAddrList
@@ -158,9 +162,9 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		}
 	}
 	if rp.consAlgo == "raft" {
-		rp.raftConsensus = NewRaft(name, *cfg, debugOn, debugLevel, gAddress, int64(len(cfg.Peers)), int64(viewTimeout), logFilePath, rp.requestsIn, rp.requestsOut, &rp, rp.cancel)
+		rp.raftConsensus = NewRaft(name, *cfg, debugOn, debugLevel, gAddress, int64(len(cfg.Peers)), int64(viewTimeout), logFilePath, rp.requestsIn, rp.requestsOut, &rp, rp.cancel, isAsync, asyncTimeout)
 	} else if rp.consAlgo == "paxos" {
-		rp.paxosConsensus = InitPaxosConsensus(name, &rp, pipelineLength)
+		rp.paxosConsensus = InitPaxosConsensus(name, &rp, pipelineLength, isAsync, asyncTimeout)
 	} else {
 		panic("should not happen")
 	}

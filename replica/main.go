@@ -16,12 +16,14 @@ func main() {
 	batchSize := flag.Int("batchSize", 50, "batch size")
 	batchTime := flag.Int("batchTime", 5000, "maximum time to wait for collecting a batch of requests in micro seconds")
 	debugOn := flag.Bool("debugOn", false, "false or true")
+	isAsync := flag.Bool("isAsync", false, "false or true to simulate asynchrony")
 	debugLevel := flag.Int("debugLevel", 0, "debug level")
 	viewTimeout := flag.Int("viewTimeout", 2000000, "view timeout in micro seconds")
 	keyLen := flag.Int("keyLen", 8, "key length")
 	valLen := flag.Int("valLen", 8, "value length")
 	benchmarkMode := flag.Int("benchmarkMode", 0, "0: resident store, 1: redis")
 	pipelineLength := flag.Int("pipelineLength", 1, "pipeline length")
+	asyncTimeout := flag.Int("asyncTimeout", 500, "asynchronous timeout in milli seconds")
 
 	flag.Parse()
 
@@ -31,8 +33,7 @@ func main() {
 		panic(err)
 	}
 
-	rp := src.New(int32(*name), cfg, *logFilePath, *batchSize, *batchTime, *debugOn, *debugLevel, *viewTimeout, *consAlgo,
-		*benchmarkMode, *keyLen, *valLen, *pipelineLength)
+	rp := src.New(int32(*name), cfg, *logFilePath, *batchSize, *batchTime, *debugOn, *debugLevel, *viewTimeout, *consAlgo, *benchmarkMode, *keyLen, *valLen, *pipelineLength, *isAsync, *asyncTimeout)
 
 	rp.WaitForConnections()
 	rp.StartOutgoingLinks()

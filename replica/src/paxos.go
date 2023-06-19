@@ -51,13 +51,15 @@ type Paxos struct {
 	replica               *Replica
 	pipeLineLength        int
 	decidedIndexes        []int // indexes of already decided slots to be sent to other replicas
+	isAsync               bool
+	asyncTimeout          int
 }
 
 /*
 	init Paxos Consensus data structs
 */
 
-func InitPaxosConsensus(name int32, replica *Replica, pipelineLength int) *Paxos {
+func InitPaxosConsensus(name int32, replica *Replica, pipelineLength int, isAsync bool, asyncTimeout int) *Paxos {
 
 	replicatedLog := make([]PaxosInstance, 0)
 	// create the genesis slot
@@ -105,6 +107,8 @@ func InitPaxosConsensus(name int32, replica *Replica, pipelineLength int) *Paxos
 		replica:               replica,
 		pipeLineLength:        pipelineLength,
 		decidedIndexes:        make([]int, 0),
+		isAsync:               isAsync,
+		asyncTimeout:          asyncTimeout,
 	}
 }
 
@@ -464,6 +468,13 @@ func (rp *Replica) sendPropose(requests []*proto.ClientBatch) { // requests can 
 		}
 		// reset decided indexes
 		rp.paxosConsensus.decidedIndexes = make([]int, 0)
+
+		if rp.isAsync {
+			n := rand.Intn(rp.numReplicas) + 1
+			if int32(n) == rp.name {
+				time.Sleep(time.Duration(rp.asyncTimeout) * time.Millisecond)
+			}
+		}
 
 		// send a propose message
 		for name, _ := range rp.replicaAddrList {
