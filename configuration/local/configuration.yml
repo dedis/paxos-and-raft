@@ -1,0 +1,33 @@
+peers:
+   - name: 1
+     address: 0.0.0.0:10001
+     gaddress: 0.0.0.0:11001
+   - name: 2
+     address: 0.0.0.0:10002
+     gaddress: 0.0.0.0:11002
+   - name: 3
+     address: 0.0.0.0:10003
+     gaddress: 0.0.0.0:11003
+   - name: 4
+     address: 0.0.0.0:10004
+     gaddress: 0.0.0.0:11004
+   - name: 5
+     address: 0.0.0.0:10005
+     gaddress: 0.0.0.0:11005
+
+clients:
+   - name: 21
+     address: 0.0.0.0:12001
+     gaddress: 0.0.0.0:13001
+   - name: 22
+     address: 0.0.0.0:12002
+     gaddress: 0.0.0.0:13002
+   - name: 23
+     address: 0.0.0.0:12003
+     gaddress: 0.0.0.0:13003
+   - name: 24
+     address: 0.0.0.0:12004
+     gaddress: 0.0.0.0:13004
+   - name: 25
+     address: 0.0.0.0:12005
+     gaddress: 0.0.0.0:13005

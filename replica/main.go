@@ -23,7 +23,7 @@ func main() {
 	valLen := flag.Int("valLen", 8, "value length")
 	benchmarkMode := flag.Int("benchmarkMode", 0, "0: resident store, 1: redis")
 	pipelineLength := flag.Int("pipelineLength", 1, "pipeline length")
-	asyncTimeout := flag.Int("asyncTimeout", 500, "asynchronous timeout in milli seconds")
+	asyncTimeout := flag.Int("asyncTimeout", 500, "artificial asynchronous timeout in milli seconds")
 
 	flag.Parse()
 
