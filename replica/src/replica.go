@@ -129,6 +129,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		cancel:                 make(chan bool, 7),
 		isAsynchronous:         isAsync,
 		asyncSimulationTimeout: asyncTimeout,
+		asynchronousReplicas:   make(map[int][]int),
 		timeEpochSize:          timeEpochSize,
 	}
 
