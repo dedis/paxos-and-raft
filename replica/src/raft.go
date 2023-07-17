@@ -65,13 +65,12 @@ type Raft struct {
 	replica                *Replica
 	startedFailureDetector bool
 	cancel                 chan bool
-	isAsync                bool
-	asyncTimeout           int
+	startTime              time.Time
 }
 
 // create a new raft instance
 
-func NewRaft(id int32, cfg configuration.InstanceConfig, debugOn bool, debugLevel int, address string, numNodes int64, viewTimeOut int64, logFilePath string, requestsIn chan []*proto.ClientBatch, requestsOut chan []*proto.ClientBatch, replica *Replica, cancel chan bool, isAsync bool, asyncTimeout int) *Raft {
+func NewRaft(id int32, cfg configuration.InstanceConfig, debugOn bool, debugLevel int, address string, numNodes int64, viewTimeOut int64, logFilePath string, requestsIn chan []*proto.ClientBatch, requestsOut chan []*proto.ClientBatch, replica *Replica, cancel chan bool) *Raft {
 
 	r := &Raft{
 		id:           id,
@@ -112,8 +111,6 @@ func NewRaft(id int32, cfg configuration.InstanceConfig, debugOn bool, debugLeve
 		replica:                replica,
 		startedFailureDetector: false,
 		cancel:                 cancel,
-		isAsync:                isAsync,
-		asyncTimeout:           asyncTimeout,
 	}
 
 	r.votedFor[1] = 1
@@ -511,10 +508,12 @@ func (in *Raft) appendEntries(values []*proto.ClientBatch) []*proto.ClientBatch 
 	cancelled := false
 	wg := sync.WaitGroup{}
 
-	if in.isAsync {
-		n := rand.Intn(len(in.peers)) + 1
-		if int32(n) == in.id {
-			time.Sleep(time.Duration(in.asyncTimeout) * time.Millisecond)
+	if in.replica.isAsynchronous {
+
+		epoch := time.Now().Sub(in.startTime).Milliseconds() / int64(in.replica.timeEpochSize)
+
+		if in.replica.amIAttacked(int(epoch)) {
+			time.Sleep(time.Duration(in.replica.asyncSimulationTimeout) * time.Millisecond)
 		}
 	}
 

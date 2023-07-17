@@ -57,6 +57,7 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 				time.Sleep(time.Duration(2) * time.Second)
 				rp.raftConsensus.proposeBatch()
 				//rp.debug("started raft consensus with initial prepare", 0)
+				rp.raftConsensus.startTime = time.Now()
 			}
 		}
 	}

@@ -24,6 +24,7 @@ func main() {
 	benchmarkMode := flag.Int("benchmarkMode", 0, "0: resident store, 1: redis")
 	pipelineLength := flag.Int("pipelineLength", 1, "pipeline length")
 	asyncTimeout := flag.Int("asyncTimeout", 500, "artificial asynchronous timeout in milli seconds")
+	timeEpochSize := flag.Int("timeEpochSize", 500, "duration of a time epoch for the attacker in milli seconds")
 
 	flag.Parse()
 
@@ -33,7 +34,7 @@ func main() {
 		panic(err)
 	}
 
-	rp := src.New(int32(*name), cfg, *logFilePath, *batchSize, *batchTime, *debugOn, *debugLevel, *viewTimeout, *consAlgo, *benchmarkMode, *keyLen, *valLen, *pipelineLength, *isAsync, *asyncTimeout)
+	rp := src.New(int32(*name), cfg, *logFilePath, *batchSize, *batchTime, *debugOn, *debugLevel, *viewTimeout, *consAlgo, *benchmarkMode, *keyLen, *valLen, *pipelineLength, *isAsync, *asyncTimeout, *timeEpochSize)
 
 	rp.WaitForConnections()
 	rp.StartOutgoingLinks()

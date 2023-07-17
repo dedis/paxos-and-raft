@@ -71,9 +71,11 @@ type Replica struct {
 	requestsIn  chan []*proto.ClientBatch
 	requestsOut chan []*proto.ClientBatch // for raft client responses
 
-	cancel       chan bool // to cancel the dummy client requests and the raft failure detector
-	isAsync      bool
-	asyncTimeout int
+	cancel                 chan bool // to cancel the dummy client requests and the raft failure detector
+	isAsynchronous         bool
+	asyncSimulationTimeout int
+	asynchronousReplicas   map[int][]int // for each time based epoch, the minority replicas that are attacked
+	timeEpochSize          int           // how many ms for a given time epoch
 }
 
 const numOutgoingThreads = 200       // number of wire writers: since the I/O writing is expensive we delegate that task to a thread pool and separate from the critical path
@@ -84,7 +86,7 @@ const outgoingBufferSize = 100000000 // size of the buffer that collects message
 	instantiate a new replica instance, allocate the buffers
 */
 
-func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, viewTimeout int, consAlgo string, benchmarkMode int, keyLen int, valLen int, pipelineLength int, isAsync bool, asyncTimeout int) *Replica {
+func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, viewTimeout int, consAlgo string, benchmarkMode int, keyLen int, valLen int, pipelineLength int, isAsync bool, asyncTimeout int, timeEpochSize int) *Replica {
 	rp := Replica{
 		name:          name,
 		listenAddress: common.GetAddress(cfg.Peers, name),
@@ -110,23 +112,24 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		replicaBatchSize: replicaBatchSize,
 		replicaBatchTime: replicaBatchTime,
 
-		outgoingMessageChan: make(chan *common.OutgoingRPC, outgoingBufferSize),
-		debugOn:             debugOn,
-		debugLevel:          debugLevel,
-		serverStarted:       false,
-		consensusStarted:    false,
-		viewTimeout:         viewTimeout,
-		logPrinted:          false,
-		consAlgo:            consAlgo,
-		benchmarkMode:       benchmarkMode,
-		state:               Init(benchmarkMode, name, keyLen, valLen),
-		incomingRequests:    make([]*proto.ClientBatch, 0),
-		pipelineLength:      pipelineLength,
-		requestsIn:          make(chan []*proto.ClientBatch),
-		requestsOut:         make(chan []*proto.ClientBatch, incomingBufferSize),
-		cancel:              make(chan bool, 7),
-		isAsync:             isAsync,
-		asyncTimeout:        asyncTimeout,
+		outgoingMessageChan:    make(chan *common.OutgoingRPC, outgoingBufferSize),
+		debugOn:                debugOn,
+		debugLevel:             debugLevel,
+		serverStarted:          false,
+		consensusStarted:       false,
+		viewTimeout:            viewTimeout,
+		logPrinted:             false,
+		consAlgo:               consAlgo,
+		benchmarkMode:          benchmarkMode,
+		state:                  Init(benchmarkMode, name, keyLen, valLen),
+		incomingRequests:       make([]*proto.ClientBatch, 0),
+		pipelineLength:         pipelineLength,
+		requestsIn:             make(chan []*proto.ClientBatch),
+		requestsOut:            make(chan []*proto.ClientBatch, incomingBufferSize),
+		cancel:                 make(chan bool, 7),
+		isAsynchronous:         isAsync,
+		asyncSimulationTimeout: asyncTimeout,
+		timeEpochSize:          timeEpochSize,
 	}
 
 	// initialize clientAddrList
@@ -161,8 +164,31 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 			break
 		}
 	}
+
+	if rp.isAsynchronous {
+		// initialize the attack replicas for each time epoch, we assume a total number of time of the run to be 10 minutes just for convenience, but this does not affect the correctness
+		numEpochs := 10 * 60 * 1000 / rp.timeEpochSize
+		s2 := rand.NewSource(39)
+		r2 := rand.New(s2)
+
+		for i := 0; i < numEpochs; i++ {
+			rp.asynchronousReplicas[i] = []int{}
+			for j := 0; j < rp.numReplicas/2; j++ {
+				newReplica := r2.Intn(39)%rp.numReplicas + 1
+				for rp.inArray(rp.asynchronousReplicas[i], newReplica) {
+					newReplica = r2.Intn(39)%rp.numReplicas + 1
+				}
+				rp.asynchronousReplicas[i] = append(rp.asynchronousReplicas[i], newReplica)
+			}
+		}
+
+		if rp.debugOn {
+			//rp.debug(fmt.Sprintf("set of attacked nodes %v ", rp.asynchronousReplicas), 0)
+		}
+	}
+
 	if rp.consAlgo == "raft" {
-		rp.raftConsensus = NewRaft(name, *cfg, debugOn, debugLevel, gAddress, int64(len(cfg.Peers)), int64(viewTimeout), logFilePath, rp.requestsIn, rp.requestsOut, &rp, rp.cancel, isAsync, asyncTimeout)
+		rp.raftConsensus = NewRaft(name, *cfg, debugOn, debugLevel, gAddress, int64(len(cfg.Peers)), int64(viewTimeout), logFilePath, rp.requestsIn, rp.requestsOut, &rp, rp.cancel)
 	} else if rp.consAlgo == "paxos" {
 		rp.paxosConsensus = InitPaxosConsensus(name, &rp, pipelineLength, isAsync, asyncTimeout)
 	} else {
@@ -173,6 +199,33 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 	fmt.Printf("--Initialized %v replica %v with process id: %v \n", consAlgo, name, pid)
 
 	return &rp
+}
+
+/*
+	checks if replica is in ints
+*/
+
+func (rp *Replica) inArray(ints []int, replica int) bool {
+	for i := 0; i < len(ints); i++ {
+		if ints[i] == replica {
+			return true
+		}
+	}
+	return false
+}
+
+/*
+	checks if self is in the set of attacked nodes for this replica in this time epoch
+*/
+
+func (rp *Replica) amIAttacked(epoch int) bool {
+	attackedNodes := rp.asynchronousReplicas[epoch]
+	for i := 0; i < len(attackedNodes); i++ {
+		if rp.name == int32(attackedNodes[i]) {
+			return true
+		}
+	}
+	return false
 }
 
 /*

@@ -469,10 +469,12 @@ func (rp *Replica) sendPropose(requests []*proto.ClientBatch) { // requests can 
 		// reset decided indexes
 		rp.paxosConsensus.decidedIndexes = make([]int, 0)
 
-		if rp.isAsync {
-			n := rand.Intn(rp.numReplicas) + 1
-			if int32(n) == rp.name {
-				time.Sleep(time.Duration(rp.asyncTimeout) * time.Millisecond)
+		if rp.isAsynchronous {
+
+			epoch := time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds() / int64(rp.timeEpochSize)
+
+			if rp.amIAttacked(int(epoch)) {
+				time.Sleep(time.Duration(rp.asyncSimulationTimeout) * time.Millisecond)
 			}
 		}
 

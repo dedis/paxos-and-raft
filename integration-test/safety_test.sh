@@ -68,7 +68,7 @@ pkill replica; pkill replica; pkill replica; pkill replica; pkill replica
 pkill client; pkill client; pkill client; pkill client; pkill client
 rm -r configuration/local
 
-python3 integration-test/python/overlay-test.py ${output_path}/1-consensus.txt ${output_path}/2-consensus.txt ${output_path}/3-consensus.txt ${output_path}/4-consensus.txt ${output_path}/5-consensus.txt
+python3 integration-test/python/overlay-test.py ${output_path}/1-consensus.txt ${output_path}/2-consensus.txt ${output_path}/3-consensus.txt ${output_path}/4-consensus.txt ${output_path}/5-consensus.txt > ${output_path}consensus_correctness.log
 
 echo "Killed instances"
 
