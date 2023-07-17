@@ -5,10 +5,11 @@ batchTime=$4
 batchSize=$5
 pipelineLength=$6
 window=$7
+asyncTime=$8
 
 replica_path="replica/bin/replica"
 ctl_path="client/bin/client"
-output_path="logs/${arrivalRate}/${algo}/${viewTimeoutTime}/${batchTime}/${batchSize}/${pipelineLength}/${window}/"
+output_path="logs/${arrivalRate}/${algo}/${viewTimeoutTime}/${batchTime}/${batchSize}/${pipelineLength}/${window}/${asyncTime}/"
 
 rm -r configuration/local
 mkdir -p configuration/local
@@ -22,11 +23,11 @@ pkill client; pkill client; pkill client; pkill client; pkill client
 
 echo "Killed previously running instances"
 
-nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" --logFilePath ${output_path} >${output_path}1.log &
-nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" --logFilePath ${output_path} >${output_path}2.log &
-nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" --logFilePath ${output_path} >${output_path}3.log &
-nohup ./${replica_path} --name 4 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" --logFilePath ${output_path} >${output_path}4.log &
-nohup ./${replica_path} --name 5 --consAlgo "${algo}" --batchSize "${batchSize}" --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" --logFilePath ${output_path} >${output_path}5.log &
+nohup ./${replica_path} --name 1 --consAlgo "${algo}" --batchSize "${batchSize}" --asyncTimeout ${asyncTime} --isAsync --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" --logFilePath ${output_path} >${output_path}1.log &
+nohup ./${replica_path} --name 2 --consAlgo "${algo}" --batchSize "${batchSize}" --asyncTimeout ${asyncTime} --isAsync --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" --logFilePath ${output_path} >${output_path}2.log &
+nohup ./${replica_path} --name 3 --consAlgo "${algo}" --batchSize "${batchSize}" --asyncTimeout ${asyncTime} --isAsync --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" --logFilePath ${output_path} >${output_path}3.log &
+nohup ./${replica_path} --name 4 --consAlgo "${algo}" --batchSize "${batchSize}" --asyncTimeout ${asyncTime} --isAsync --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" --logFilePath ${output_path} >${output_path}4.log &
+nohup ./${replica_path} --name 5 --consAlgo "${algo}" --batchSize "${batchSize}" --asyncTimeout ${asyncTime} --isAsync --batchTime "${batchTime}"   --debugOn --debugLevel 100 --viewTimeout "${viewTimeoutTime}" --pipelineLength "${pipelineLength}" --logFilePath ${output_path} >${output_path}5.log &
 
 echo "Started 5 replicas"
 
