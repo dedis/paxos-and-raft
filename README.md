@@ -10,8 +10,6 @@ All implementations are tested in ```Ubuntu 20.04.3 LTS```
 run ```go get -u github.com/golang/protobuf/protoc-gen-go``` and ```go get -u google.golang.org/grpc``` to install ```protobuff``` and ```grpc```
 
 
-run ```protoc --go_out=./ --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ./proto/definitions.proto``` to generate the stubs, and then copy the ```definitions_grpc.pb.go``` from ```proto``` to ```replica/src```
-
 
 
 run ```go mod vendor``` to install dependencies
