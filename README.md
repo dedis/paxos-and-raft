@@ -26,5 +26,5 @@ The Paxos implementation of this repository was inspired by [EPaxos](https://git
 
 - The new implementation supports correct view change implementation 
 - The new implementation supports client side batching
-- The new implementation support REDIS
+- The new implementation supports REDIS
 
